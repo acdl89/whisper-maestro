@@ -1,0 +1,336 @@
+
+Tray setup complete
+Global shortcuts registered
+Initializing app - showing main window
+showMainWindow called
+Creating new window
+Loading HTML from: /Users/adriancabrera
+Loading HTML from: /Users/adriancabrera/VibeCoding/WhisperMaestro/renderer/ind
+Loading HTML from: /Users/adriancabrera/VibeCoding/WhisperMaestro/renderer/index.html
+HTML file exists: true
+Window ready to show
+Page finished loading
+HTML file loaded successfully
+2025-06-26 23:35:00.078 Electron[23112:
+2025-06-26 23:35:00.078 Electron[23112:996620] +[IMKClient subclass]: chose IM
+2025-06-26 23:35:00.078 Electron[23112:996620] +[IMKClient subclass]: chose IMKClient_Modern
+2025-06-26 23:35:00.078 Electron[23112:
+2025-06-26 23:35:00.078 Electron[23112:996620] +[IMKInputSession subclass]: ch
+2025-06-26 23:35:00.078 Electron[23112:996620] +[IMKInputSession subclass]: chose IMKInputSession_Modern
+🎤 Main: Received UI recording started 
+🎤 Main: Received UI recording started notification
+🎤 Main: startRecording called
+🟢 Main: Starting recording...
+✅ Main: Audio recorder started success
+✅ Main: Audio recorder started successfully
+📡 Main: Sending recording-started even
+📡 Main: Sending recording-started event to renderer
+🛑 Main: Received UI recording stopped 
+🛑 Main: Received UI recording stopped notification
+🛑 Main: stopRecording called
+🛑 Main: Stopping recording...
+🎵 Main: Getting audio buffer from reco
+🎵 Main: Getting audio buffer from recorder...
+✅ Main: Audio buffer received, size: 9
+✅ Main: Audio buffer received, size: 96044 bytes
+📡 Main: Sending recording-stopped even
+📡 Main: Sending recording-stopped event to renderer
+�� Main: Sending transcribing event to 
+📡 Main: Sending transcribing event to renderer
+⚙️ Main: Getting settings for transcript
+⚙️ Main: Getting settings for transcription...
+📋 Main: Settings retrieved, provider: 
+📋 Main: Settings retrieved, provider: openai
+🤖 Main: Starting transcription...
+🔍 TranscriptionService: Starting trans
+🔍 TranscriptionService: Starting transcription...
+🔍 TranscriptionService: Audio buffer s
+🔍 TranscriptionService: Audio buffer size: 96044 bytes
+🔍 TranscriptionService: Settings provi
+🔍 TranscriptionService: Settings provider: openai
+✅ TranscriptionService: Provider found
+✅ TranscriptionService: Provider found, calling transcribe method...
+🤖 OpenAIProvider: Starting transcripti
+🤖 OpenAIProvider: Starting transcription...
+🤖 OpenAIProvider: Audio buffer size: 9
+🤖 OpenAIProvider: Audio buffer size: 96044 bytes
+🤖 OpenAIProvider: Model: whisper-1
+🤖 OpenAIProvider: Language: undefined
+🤖 OpenAIProvider: Has API key: false
+📁 OpenAIProvider: Creating temp file: 
+📁 OpenAIProvider: Creating temp file: /var/folders/3p/9hlmryb56h3frvg3g3wfcbj
+📁 OpenAIProvider: Creating temp file: /var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973712054.wav
+🔄 OpenAIProvider: Converting buffer to
+🔄 OpenAIProvider: Converting buffer to WAV...
+✅ OpenAIProvider: WAV file created suc
+✅ OpenAIProvider: WAV file created successfully
+🚀 OpenAIProvider: Making API call to O
+🚀 OpenAIProvider: Making API call to OpenAI...
+❌ OpenAIProvider: API call failed: Aut
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provid
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your 
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header usin
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bear
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field 
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessi
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are pr
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://pla
+❌ OpenAIProvider: API call failed: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.
+    at APIError.generate (/Users/adrian
+    at APIError.generate (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_
+    at APIError.generate (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/error.js:48:20)
+    at OpenAI.makeStatusError (/Users/a
+    at OpenAI.makeStatusError (/Users/adriancabrera/VibeCoding/WhisperMaestro/
+    at OpenAI.makeStatusError (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/core.js:302:33)
+    at OpenAI.makeRequest (/Users/adria
+    at OpenAI.makeRequest (/Users/adriancabrera/VibeCoding/WhisperMaestro/node
+    at OpenAI.makeRequest (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/core.js:346:30)
+    at process.processTicksAndRejection
+    at process.processTicksAndRejections (node:internal/process/task_queues:95
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async OpenAIProvider.transcribe 
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/Whispe
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/providers/openai
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/providers/openaiProvider.js:65:35)
+    at async TranscriptionService.trans
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/transcript
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/transcriptionService.js:23:24)
+    at async WhisperMaestroApp.stopReco
+    at async WhisperMaestroApp.stopRecording (/Users/adriancabrera/VibeCoding/
+    at async WhisperMaestroApp.stopRecording (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/main.js:293:35) {
+  status: 401,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '955fd54ac93d0fa8-EWR',
+    connection: 'keep-alive',
+    'content-length': '496',
+    'content-type': 'application/json; 
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Thu, 26 Jun 2025 21:35:13 GM
+    date: 'Thu, 26 Jun 2025 21:35:13 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=fiBoeCoK7K5W
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4M
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHE
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW4
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:0
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpO
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8X
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmK
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; S
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-a
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff'
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_53d1ad910f9f48
+    'x-request-id': 'req_53d1ad910f9f4849650172206718db1a'
+  },
+  request_id: 'req_53d1ad910f9f48496501
+  request_id: 'req_53d1ad910f9f4849650172206718db1a',
+  error: {
+    message: "You didn't provide an API
+    message: "You didn't provide an API key. You need to provide your API key 
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with bl
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the A
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted f
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obt
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.op
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.",
+    type: 'invalid_request_error',
+    param: null,
+    code: null
+  },
+  code: null,
+  param: null,
+  type: 'invalid_request_error'
+}
+🧹 OpenAIProvider: Cleaning up temp fil
+🧹 OpenAIProvider: Cleaning up temp file
+❌ Main: Failed to stop recording: Auth
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your A
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Beare
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessin
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are pro
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You 
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://plat
+❌ Main: Failed to stop recording: AuthenticationError: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.
+    at APIError.generate (/Users/adrian
+    at APIError.generate (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_
+    at APIError.generate (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/error.js:48:20)
+    at OpenAI.makeStatusError (/Users/a
+    at OpenAI.makeStatusError (/Users/adriancabrera/VibeCoding/WhisperMaestro/
+    at OpenAI.makeStatusError (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/core.js:302:33)
+    at OpenAI.makeRequest (/Users/adria
+    at OpenAI.makeRequest (/Users/adriancabrera/VibeCoding/WhisperMaestro/node
+    at OpenAI.makeRequest (/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/openai/core.js:346:30)
+    at process.processTicksAndRejection
+    at process.processTicksAndRejections (node:internal/process/task_queues:95
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async OpenAIProvider.transcribe 
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/Whispe
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/providers/openai
+    at async OpenAIProvider.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/providers/openaiProvider.js:65:35)
+    at async TranscriptionService.trans
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/transcript
+    at async TranscriptionService.transcribe (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/services/transcriptionService.js:23:24)
+    at async WhisperMaestroApp.stopReco
+    at async WhisperMaestroApp.stopRecording (/Users/adriancabrera/VibeCoding/
+    at async WhisperMaestroApp.stopRecording (/Users/adriancabrera/VibeCoding/WhisperMaestro/dist/main.js:293:35) {
+  status: 401,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '955fd54ac93d0fa8-EWR',
+    connection: 'keep-alive',
+    'content-length': '496',
+    'content-type': 'application/json; 
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Thu, 26 Jun 2025 21:35:13 GM
+    date: 'Thu, 26 Jun 2025 21:35:13 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=fiBoeCoK7K5W
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4M
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHE
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW4
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:0
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpO
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8X
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmK
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; S
+    'set-cookie': '__cf_bm=fiBoeCoK7K5WA0UVQy_sMBpssK6LYOAGX_fvKTqArls-1750973713-1.0.1.1-4tAG1ELJOqaDiRcwHNONL.SuZ4MCqX5ZYnwLY2gModembl5aJrrVgWInptsCdqpNHEBG1w2v9tb_Wops1NYopB1zz_9WZn7JxZocbOrW44k; path=/; expires=Thu, 26-Jun-25 22:05:13 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=h8XJcGnY9D2zfCLIpuhmhs8S1Y.JqNJYO3mUviljmKI-1750973713349-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-a
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff'
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_53d1ad910f9f48
+    'x-request-id': 'req_53d1ad910f9f4849650172206718db1a'
+  },
+  request_id: 'req_53d1ad910f9f48496501
+  request_id: 'req_53d1ad910f9f4849650172206718db1a',
+  error: {
+    message: "You didn't provide an API
+    message: "You didn't provide an API key. You need to provide your API key 
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with bl
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the A
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted f
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obt
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.op
+    message: "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.",
+    type: 'invalid_request_error',
+    param: null,
+    code: null
+  },
+  code: null,
+  param: null,
+  type: 'invalid_request_error'
+}
+📡 Main: Sending transcription-error ev
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your A
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Beare
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessin
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are pro
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You 
+�� Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://plat
+📡 Main: Sending transcription-error event to renderer: 401 You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.
+🎤 Main: Received UI recording started 
+🎤 Main: Received UI recording started notification
+🎤 Main: startRecording called
+🟢 Main: Starting recording...
+✅ Main: Audio recorder started success
+✅ Main: Audio recorder started successfully
+📡 Main: Sending recording-started even
+📡 Main: Sending recording-started event to renderer
+🛑 Main: Received UI recording stopped 
+🛑 Main: Received UI recording stopped notification
+🛑 Main: stopRecording called
+🛑 Main: Stopping recording...
+🎵 Main: Getting audio buffer from reco
+🎵 Main: Getting audio buffer from recorder...
+✅ Main: Audio buffer received, size: 9
+✅ Main: Audio buffer received, size: 96044 bytes
+📡 Main: Sending recording-stopped even
+📡 Main: Sending recording-stopped event to renderer
+📡 Main: Sending transcribing event to 
+📡 Main: Sending transcribing event to renderer
+⚙️ Main: Getting settings for transcript
+⚙️ Main: Getting settings for transcription...
+📋 Main: Settings retrieved, provider: 
+📋 Main: Settings retrieved, provider: openai
+🤖 Main: Starting transcription...
+🔍 TranscriptionService: Starting trans
+🔍 TranscriptionService: Starting transcription...
+🔍 TranscriptionService: Audio buffer s
+🔍 TranscriptionService: Audio buffer size: 96044 bytes
+�� TranscriptionService: Settings provi
+🔍 TranscriptionService: Settings provider: openai
+✅ TranscriptionService: Provider found
+✅ TranscriptionService: Provider found, calling transcribe method...
+🤖 OpenAIProvider: Starting transcripti
+🤖 OpenAIProvider: Starting transcription...
+🤖 OpenAIProvider: Audio buffer size: 9
+🤖 OpenAIProvider: Audio buffer size: 96044 bytes
+🤖 OpenAIProvider: Model: whisper-1
+🤖 OpenAIProvider: Language: undefined
+🤖 OpenAIProvider: Has API key: false
+📁 OpenAIProvider: Creating temp file: 
+📁 OpenAIProvider: Creating temp file: /var/folders/3p/9hlmryb56h3frvg3g3wfcbj
+📁 OpenAIProvider: Creating temp file: /var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav
+🔄 OpenAIProvider: Converting buffer to
+🔄 OpenAIProvider: Converting buffer to WAV...
+❌ OpenAIProvider: API call failed: [Er
+❌ OpenAIProvider: API call failed: [Error: ENOENT: no such file or directory,
+❌ OpenAIProvider: API call failed: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3
+❌ OpenAIProvider: API call failed: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.
+❌ OpenAIProvider: API call failed: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/var/folders/3p/9hlmryb56h3frv
+  path: '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-175097373445
+  path: '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav'
+}
+🧹 OpenAIProvider: Cleaning up temp fil
+🧹 OpenAIProvider: Cleaning up temp file
+❌ Main: Failed to stop recording: [Err
+❌ Main: Failed to stop recording: [Error: ENOENT: no such file or directory, 
+❌ Main: Failed to stop recording: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g
+❌ Main: Failed to stop recording: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.w
+❌ Main: Failed to stop recording: [Error: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/var/folders/3p/9hlmryb56h3frv
+  path: '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-175097373445
+  path: '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav'
+}
+📡 Main: Sending transcription-error ev
+📡 Main: Sending transcription-error event to renderer: ENOENT: no such file o
+📡 Main: Sending transcription-error event to renderer: ENOENT: no such file or directory, open '/var/folders/3p/9hlm
+📡 Main: Sending transcription-error event to renderer: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-17
+📡 Main: Sending transcription-error event to renderer: ENOENT: no such file or directory, open '/var/folders/3p/9hlmryb56h3frvg3g3wfcbj40000gn/T/whisper-1750973734457.wav'
+^C/Users/adriancabrera/VibeCoding/Whisp
+^C/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/electron/dist/El
+^C/Users/adriancabrera/VibeCoding/WhisperMaestro/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron exit

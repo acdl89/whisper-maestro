@@ -1,0 +1,90 @@
+{
+  "name": "whisper-maestro",
+  "version": "1.0.0",
+  "description": "A macOS menu bar app for speech-to-text transcription using OpenAI Whisper",
+  "main": "dist/main.js",
+  "homepage": "https://github.com/acdl89/whisper-maestro",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "npm run build && electron .",
+    "dev": "concurrently \"npm run watch\" \"electron .\"",
+    "package": "npm run build && electron-builder",
+    "dist": "npm run build && electron-builder --mac --publish=never",
+    "dist:mac": "npm run build && electron-builder --mac --publish=never"
+  },
+  "keywords": [
+    "macos",
+    "speech-to-text",
+    "whisper",
+    "electron",
+    "menu-bar",
+    "transcription",
+    "voice-to-text"
+  ],
+  "author": {
+    "name": "Adrian Cabrera",
+    "email": "adrian@maestrolabs.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0",
+    "concurrently": "^8.0.0"
+  },
+  "dependencies": {
+    "openai": "^4.0.0",
+    "electron-store": "^8.1.0",
+    "keytar": "^7.9.0",
+    "electron-updater": "^6.1.0"
+  },
+  "build": {
+    "appId": "com.whispermaestro.app",
+    "productName": "WhisperMaestro",
+    "copyright": "Copyright © 2024 Adrian Cabrera",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "renderer/**/*",
+      "node_modules/**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/*.d.ts",
+      "!node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icons/mac/icon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "gatekeeperAssess": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "acdl89",
+      "repo": "whisper-maestro"
+    }
+  }
+}
