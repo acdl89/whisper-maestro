@@ -3,40 +3,57 @@ import { TranscriptionProvider, TranscriptionResult, TranscriptionSettings } fro
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { logger } from '../../utils/logger';
 
 export class OpenAIProvider extends TranscriptionProvider {
   async transcribe(audioBuffer: Buffer, settings: TranscriptionSettings): Promise<TranscriptionResult> {
-    console.log('🤖 OpenAIProvider: Starting transcription...');
-    console.log('🤖 OpenAIProvider: Audio buffer size:', audioBuffer.length, 'bytes');
-    console.log('🤖 OpenAIProvider: Model:', settings.model || 'whisper-1');
-    console.log('🤖 OpenAIProvider: Language:', settings.language);
-    console.log('🤖 OpenAIProvider: Has API key:', !!settings.apiKey);
+    logger.log('🤖 OpenAIProvider: Starting transcription...');
+    logger.log('🤖 OpenAIProvider: Audio buffer size:', audioBuffer.length, 'bytes');
+    logger.log('🤖 OpenAIProvider: Model:', settings.model || 'whisper-1');
+    logger.log('🤖 OpenAIProvider: Has API key:', !!settings.apiKey);
+    logger.log('🤖 OpenAIProvider: MIME type:', (settings as any).mimeType);
     
     const openai = new OpenAI({
       apiKey: settings.apiKey
     });
 
-    // Save audio buffer to temporary file
+    // Determine correct file extension based on MIME type
+    const mimeType = (settings as any).mimeType || 'audio/webm';
+    let fileExtension = '.webm'; // default
+    
+    if (mimeType.includes('mp4')) {
+      fileExtension = '.mp4';
+    } else if (mimeType.includes('webm')) {
+      fileExtension = '.webm';
+    } else if (mimeType.includes('wav')) {
+      fileExtension = '.wav';
+    } else if (mimeType.includes('ogg')) {
+      fileExtension = '.ogg';
+    } else if (mimeType.includes('m4a')) {
+      fileExtension = '.m4a';
+    }
+    
+    // Save audio buffer to temporary file with correct extension
     const tempDir = os.tmpdir();
-    const tempFile = path.join(tempDir, `whisper-${Date.now()}.webm`);
-    console.log('📁 OpenAIProvider: Creating temp file:', tempFile);
+    const tempFile = path.join(tempDir, `whisper-${Date.now()}${fileExtension}`);
+    logger.log('📁 OpenAIProvider: Creating temp file:', tempFile);
+    logger.log('🎵 OpenAIProvider: File extension based on MIME type:', fileExtension);
     
     try {
-      // Write the audio buffer directly to file (no WAV conversion)
-      console.log('💾 OpenAIProvider: Writing audio buffer to file...');
+      // Write the audio buffer directly to file
+      logger.log('💾 OpenAIProvider: Writing audio buffer to file...');
       fs.writeFileSync(tempFile, audioBuffer);
-      console.log('✅ OpenAIProvider: Audio file created successfully, size:', audioBuffer.length, 'bytes');
+      logger.log('✅ OpenAIProvider: Audio file created successfully, size:', audioBuffer.length, 'bytes');
       
-      console.log('🚀 OpenAIProvider: Making API call to OpenAI...');
+      logger.log('🚀 OpenAIProvider: Making API call to OpenAI...');
       const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(tempFile),
         model: settings.model || 'whisper-1',
-        language: settings.language,
         response_format: 'verbose_json'
       });
-      console.log('✅ OpenAIProvider: API call successful');
-      console.log('📝 OpenAIProvider: Transcription text:', transcription.text);
-      console.log('🌍 OpenAIProvider: Detected language:', transcription.language);
+      logger.log('✅ OpenAIProvider: API call successful');
+      logger.log('📝 OpenAIProvider: Transcription text:', transcription.text);
+      logger.log('🌍 OpenAIProvider: Detected language:', transcription.language);
 
       const result = {
         text: transcription.text,
@@ -46,67 +63,19 @@ export class OpenAIProvider extends TranscriptionProvider {
         timestamp: new Date()
       };
       
-      console.log('📤 OpenAIProvider: Returning result:', result);
+      logger.log('📤 OpenAIProvider: Returning result:', result);
       return result;
     } catch (error) {
-      console.error('❌ OpenAIProvider: API call failed:', error);
+      logger.error('❌ OpenAIProvider: API call failed:', error);
       throw error;
     } finally {
       // Clean up temporary file
       if (fs.existsSync(tempFile)) {
-        console.log('🧹 OpenAIProvider: Cleaning up temp file');
+        logger.log('🧹 OpenAIProvider: Cleaning up temp file');
         fs.unlinkSync(tempFile);
       }
     }
   }
 
-  private async bufferToWav(buffer: Buffer, outputPath: string): Promise<void> {
-    console.log('🔄 OpenAIProvider: Creating WAV file from buffer...');
-    
-    try {
-      // Create a simple WAV file header
-      const sampleRate = 16000;
-      const channels = 1;
-      const bitDepth = 16;
-      const bytesPerSample = bitDepth / 8;
-      const blockAlign = channels * bytesPerSample;
-      const byteRate = sampleRate * blockAlign;
-      const dataSize = buffer.length;
-      const fileSize = 36 + dataSize;
-      
-      // Create WAV header
-      const header = Buffer.alloc(44);
-      
-      // RIFF header
-      header.write('RIFF', 0);
-      header.writeUInt32LE(fileSize, 4);
-      header.write('WAVE', 8);
-      
-      // fmt chunk
-      header.write('fmt ', 12);
-      header.writeUInt32LE(16, 16); // fmt chunk size
-      header.writeUInt16LE(1, 20); // PCM format
-      header.writeUInt16LE(channels, 22);
-      header.writeUInt32LE(sampleRate, 24);
-      header.writeUInt32LE(byteRate, 28);
-      header.writeUInt16LE(blockAlign, 32);
-      header.writeUInt16LE(bitDepth, 34);
-      
-      // data chunk
-      header.write('data', 36);
-      header.writeUInt32LE(dataSize, 40);
-      
-      // Combine header and audio data
-      const wavFile = Buffer.concat([header, buffer]);
-      
-      // Write to file
-      const fs = require('fs');
-      fs.writeFileSync(outputPath, wavFile);
-      
-      console.log('✅ OpenAIProvider: WAV file created successfully, size:', wavFile.length, 'bytes');
-    } catch (error) {
-      console.error('❌ OpenAIProvider: Failed to create WAV file:', error);
-      throw error;
-    }
-  }
+
 } 

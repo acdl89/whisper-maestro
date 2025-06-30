@@ -3,126 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whisper</title>
+    <title>WhisperMaestro</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
-        <header class="app-header">
-            <div class="header-actions">
-                <button id="settingsBtn" class="icon-button" title="Settings">⚙️</button>
-                <button id="historyBtn" class="icon-button" title="History">📋</button>
-            </div>
-        </header>
-
+        <button id="closeBtn" class="close-window-btn" title="Close Window (Esc)">
+            <span class="material-icons">close</span>
+        </button>
         <main class="main-content">
             <!-- Recording Page -->
             <div id="recordingPage" class="page active">
                 <div class="recording-section">
                     <div class="recording-controls">
-                        <button id="recordBtn" class="record-button">
-                            <span class="record-text">Start Recording</span>
-                        </button>
+                        <!-- Status area for transcribing animation -->
+                        <div id="statusArea" class="status-area">
+                            <div id="transcribingStatus" class="transcribing-status">
+                                <div class="transcribing-content">
+                                    <div class="transcribing-spinner">
+                                        <svg class="circular" viewBox="0 0 50 50">
+                                            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#2196f3" stroke-width="2" stroke-miterlimit="10"/>
+                                        </svg>
+                                    </div>
+                                    <span class="transcribing-text">Transcribing...</span>
+                                    <span id="transcribingProgress" class="transcribing-progress">0%</span>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div class="recording-status" id="recordingStatus">
-                            Press Cmd+Shift+R to start recording
+                        <!-- Main controls centered -->
+                        <div class="centered-controls">
+                            <button id="recordBtn" class="square-control-button record-btn" title="Start Recording (⌘,)">
+                                <span class="material-icons record-icon">mic</span>
+                                <span class="btn-label">Record <span id="shortcutDisplay" class="shortcut-badge">⌘,</span></span>
+                            </button>
+                            <button id="cancelRecordingBtn" class="square-control-button cancel-btn" title="Cancel Recording (Esc)">
+                                <span class="material-icons">close</span>
+                                <span class="btn-label">Esc</span>
+                            </button>
+                            <button id="settingsBtn" class="square-control-button secondary-btn" title="Settings">
+                                <span class="material-icons">settings</span>
+                            </button>
+                            <button id="historyBtn" class="square-control-button secondary-btn" title="History">
+                                <span class="material-icons">history</span>
+                        </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Transcription Page -->
-            <div id="transcriptionPage" class="page">
-                <div class="transcription-header">
-                    <button id="newRecordingBtn" class="secondary-button">New Recording</button>
-                </div>
-                
-                <div class="transcription-content">
-                    <div class="transcription-text-container">
-                        <textarea id="transcriptionText" placeholder="Your transcription will appear here..."></textarea>
-                    </div>
-                    
-                    <div class="transcription-actions">
-                        <button id="copyBtn" class="action-button primary">Copy</button>
-                        <button id="saveBtn" class="action-button">Save</button>
-                        <button id="editBtn" class="action-button">Edit</button>
-                    </div>
-                </div>
-            </div>
         </main>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Settings</h2>
-                <button class="close-button" id="closeSettings">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="settingsForm">
-                    <div class="form-group">
-                        <label for="provider">Provider:</label>
-                        <select id="provider" name="provider">
-                            <option value="openai">OpenAI Whisper</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="model">Model:</label>
-                        <select id="model" name="model">
-                            <option value="whisper-1">Whisper-1</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="apiKey">API Key:</label>
-                        <input type="password" id="apiKey" name="apiKey" placeholder="Enter your API key">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="language">Language (optional):</label>
-                        <input type="text" id="language" name="language" placeholder="e.g., en, es, fr">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="autoCopy" name="autoCopy">
-                            Auto-copy to clipboard
-                        </label>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="saveAudio" name="saveAudio">
-                            Save audio files
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button id="saveSettings" class="primary-button">Save Settings</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- History Modal -->
-    <div id="historyModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>History</h2>
-                <button class="close-button" id="closeHistory">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="history-controls">
-                    <input type="text" id="historySearch" placeholder="Search transcriptions...">
-                    <button id="clearHistory" class="danger-button">Clear All</button>
-                </div>
-                <div id="historyList" class="history-list">
-                    <!-- History items will be populated here -->
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="renderer.js"></script>

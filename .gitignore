@@ -1,2 +1,9 @@
 node_modules
-node_modules
+dist
+dist-electron
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

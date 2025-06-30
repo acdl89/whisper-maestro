@@ -2,15 +2,20 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
+  getCurrentShortcut: () => ipcRenderer.invoke('get-current-shortcut'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
   saveApiKey: (apiKey: string) => ipcRenderer.invoke('save-api-key', apiKey),
   getHistory: () => ipcRenderer.invoke('get-history'),
   deleteHistoryItem: (id: string) => ipcRenderer.invoke('delete-history-item', id),
   copyToClipboard: (text: string) => ipcRenderer.invoke('copy-to-clipboard', text),
-  transcribeAudio: (audioBuffer: Buffer) => ipcRenderer.invoke('transcribe-audio', audioBuffer),
+  transcribeAudio: (audioRequest: { audioData: Buffer, mimeType: string }) => ipcRenderer.invoke('transcribe-audio', audioRequest),
   notifyRecordingStarted: () => ipcRenderer.send('ui-recording-started'),
   notifyRecordingStopped: () => ipcRenderer.send('ui-recording-stopped'),
-  pasteToFocusedField: (text: string) => ipcRenderer.invoke('paste-to-focused-field', text),
+  cancelRecording: () => ipcRenderer.invoke('cancel-recording'),
+  closeWindow: () => ipcRenderer.send('close-window'),
+
+  openSettings: () => ipcRenderer.send('open-settings'),
+  openHistory: () => ipcRenderer.send('open-history'),
   
   onRecordingStarted: (callback: () => void) => {
     ipcRenderer.on('recording-started', () => callback());
@@ -36,7 +41,35 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onTranscriptionError: (callback: (error: string) => void) => {
     ipcRenderer.on('transcription-error', (event, error) => callback(error));
   },
-  onUpdateWaveform: (callback: (data: any) => void) => {
-    ipcRenderer.on('update-waveform', (event, data) => callback(data));
-  }
+  onShowTranscriptInWindow: (callback: () => void) => {
+    ipcRenderer.on('show-transcript-in-window', () => callback());
+  },
+  onShowSettings: (callback: () => void) => {
+    ipcRenderer.on('show-settings', () => callback());
+  },
+  onShowHistory: (callback: () => void) => {
+    ipcRenderer.on('show-history', () => callback());
+  },
+  onTranscriptionSet: (callback: (transcription: any) => void) => {
+    ipcRenderer.on('set-transcription', (event, transcription) => callback(transcription));
+  },
+  onTranscriptionUpdate: (callback: (transcription: any) => void) => {
+    ipcRenderer.on('update-transcription', (event, transcription) => callback(transcription));
+  },
+  onSettingsUpdated: (callback: (settings: any) => void) => {
+    ipcRenderer.on('settings-updated', (event, settings) => callback(settings));
+  },
+
+  // Onboarding methods
+  completeOnboarding: () => ipcRenderer.invoke('complete-onboarding'),
+  openExternalUrl: (url: string) => ipcRenderer.invoke('open-external-url', url),
+  
+  // Debug methods for production logging
+  getLogFilePath: () => ipcRenderer.invoke('get-log-file-path'),
+  getRecentLogs: (lines?: number) => ipcRenderer.invoke('get-recent-logs', lines),
+  
+  // System permissions check
+  checkMicrophonePermission: () => ipcRenderer.invoke('check-microphone-permission'),
+  checkAccessibilityPermission: () => ipcRenderer.invoke('check-accessibility-permission'),
+  requestAccessibilityPermission: () => ipcRenderer.invoke('request-accessibility-permission'),
 }); 

@@ -1,4 +1,5 @@
 import Store from 'electron-store';
+import { app } from 'electron';
 
 interface TranscriptionHistoryItem {
   id: string;
@@ -14,8 +15,15 @@ export class HistoryManager {
   private store: Store<{ history: TranscriptionHistoryItem[] }>;
 
   constructor() {
+    // Use different storage for development vs production
+    const storeName = app.isPackaged 
+      ? 'transcription-history-prod' 
+      : 'transcription-history-dev';
+      
     this.store = new Store<{ history: TranscriptionHistoryItem[] }>({
-      name: 'transcription-history',
+      name: storeName,
+      // Ensure production uses proper app data directory
+      cwd: undefined, // Use default user data directory
       defaults: {
         history: []
       }

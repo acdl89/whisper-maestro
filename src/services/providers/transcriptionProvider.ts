@@ -9,7 +9,7 @@ export interface TranscriptionSettings {
   provider: string;
   model?: string;
   apiKey: string;
-  language?: string;
+  mimeType?: string;
 }
 
 export abstract class TranscriptionProvider {

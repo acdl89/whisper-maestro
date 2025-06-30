@@ -2,16 +2,19 @@
 // This is a stub. You can expand it with the full UI logic as needed.
 console.log('🚀 Renderer script loaded and executing...');
 
-class WhisperMaestroUI {
+class WhisperMaestroApp {
     constructor() {
         this.isRecording = false;
         this.mediaRecorder = null;
         this.audioChunks = [];
-        this.currentTranscription = null;
-        
+        this.transcribingInterval = null;
         this.initializeEventListeners();
-        this.setupElectronAPI();
-        this.showPage('recordingPage');
+        this.setupIpcListeners();
+        
+        // Initialize shortcut display after a small delay to ensure API is ready
+        setTimeout(() => {
+            this.updateShortcutDisplay();
+        }, 100);
     }
 
     showPage(pageId) {
@@ -36,72 +39,52 @@ class WhisperMaestroUI {
             });
         }
 
-        // New recording button
-        const newRecordingBtn = document.getElementById('newRecordingBtn');
-        if (newRecordingBtn) {
-            newRecordingBtn.addEventListener('click', () => {
-                this.showPage('recordingPage');
+        // Cancel recording button
+        const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
+        if (cancelRecordingBtn) {
+            cancelRecordingBtn.addEventListener('click', () => {
+                this.cancelRecording();
             });
         }
 
-        // Settings
+        // Esc key for canceling recording or closing window
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.isRecording) {
+                    this.cancelRecording();
+                } else {
+                    this.closeWindow();
+                }
+            }
+        });
+
+        // Close button
+        const closeBtn = document.getElementById('closeBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeWindow();
+            });
+        }
+
+
+
+        // Settings button
         const settingsBtn = document.getElementById('settingsBtn');
         if (settingsBtn) {
             settingsBtn.addEventListener('click', () => {
-                this.showSettings();
+                this.openSettings();
             });
         }
 
-        const closeSettings = document.getElementById('closeSettings');
-        if (closeSettings) {
-            closeSettings.addEventListener('click', () => {
-                this.hideSettings();
-            });
-        }
-
-        const saveSettings = document.getElementById('saveSettings');
-        if (saveSettings) {
-            saveSettings.addEventListener('click', () => {
-                this.saveSettings();
-            });
-        }
-
-        // History
+        // History button
         const historyBtn = document.getElementById('historyBtn');
         if (historyBtn) {
             historyBtn.addEventListener('click', () => {
-                this.showHistory();
+                this.openHistory();
             });
         }
 
-        const closeHistory = document.getElementById('closeHistory');
-        if (closeHistory) {
-            closeHistory.addEventListener('click', () => {
-                this.hideHistory();
-            });
-        }
 
-        // Transcription actions
-        const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
-                this.copyTranscription();
-            });
-        }
-
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                this.saveTranscription();
-            });
-        }
-
-        const editBtn = document.getElementById('editBtn');
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                this.toggleEditMode();
-            });
-        }
 
         // History search
         const historySearch = document.getElementById('historySearch');
@@ -138,13 +121,13 @@ class WhisperMaestroUI {
         }
     }
 
-    setupElectronAPI() {
+    setupIpcListeners() {
         console.log('🔧 Setting up Electron API event listeners...');
         
         // Check if electronAPI is available
         if (typeof window.electronAPI === 'undefined') {
             console.warn('⚠️ Electron API not available yet, retrying in 100ms...');
-            setTimeout(() => this.setupElectronAPI(), 100);
+            setTimeout(() => this.setupIpcListeners(), 100);
             return;
         }
         
@@ -165,19 +148,7 @@ class WhisperMaestroUI {
             this.onTranscribing();
         });
 
-        window.electronAPI.onTranscriptionComplete((transcription) => {
-            console.log('✅ Renderer: Received transcription complete event');
-            this.onTranscriptionComplete(transcription);
-        });
-
-        window.electronAPI.onTranscriptionError((error) => {
-            console.log('❌ Renderer: Received transcription error event');
-            this.onTranscriptionError(error);
-        });
-
-        window.electronAPI.onUpdateWaveform((data) => {
-            this.updateWaveform(data);
-        });
+        // Transcription events are now handled by separate transcription window
 
         window.electronAPI.onShortcutRecordingToggled((isRecording) => {
             console.log('🎹 Renderer: Received shortcut-triggered recording event, state:', isRecording);
@@ -189,14 +160,25 @@ class WhisperMaestroUI {
             this.stopRecording();
         });
 
-        window.electronAPI.onShowTranscriptInWindow(() => {
-            console.log('📺 Renderer: Received show-transcript-in-window event');
-            if (this.currentTranscription) {
-                this.showTranscription(this.currentTranscription);
-            } else {
-                this.showPage('transcriptionPage');
-            }
+
+
+        window.electronAPI.onShowSettings(() => {
+            console.log('⚙️ Renderer: Received show-settings event from tray menu');
+            this.showSettings();
         });
+
+        window.electronAPI.onShowHistory(() => {
+            console.log('📋 Renderer: Received show-history event from tray menu');
+            this.showHistory();
+        });
+
+        // Listen for settings updates
+        if (window.electronAPI.onSettingsUpdated) {
+            window.electronAPI.onSettingsUpdated((settings) => {
+                console.log('⚙️ Renderer: Settings updated, refreshing shortcut display');
+                this.updateShortcutDisplay();
+            });
+        }
         
         console.log('✅ All Electron API event listeners set up successfully');
         console.log('🔧 Testing if electronAPI is available:', typeof window.electronAPI !== 'undefined');
@@ -213,9 +195,52 @@ class WhisperMaestroUI {
 
     async startRecording() {
         console.log('🟢 Starting recording...');
+        
+        // Check microphone permission first
+        if (typeof window.electronAPI !== 'undefined' && window.electronAPI.checkMicrophonePermission) {
+            try {
+                const micPermission = await window.electronAPI.checkMicrophonePermission();
+                console.log('🎤 Microphone permission status:', micPermission);
+                
+                if (micPermission === 'denied') {
+                    this.showNotification('Microphone access denied. Please grant permission in System Settings > Privacy & Security > Microphone', 'error');
+                    return;
+                }
+                
+                if (micPermission === 'not-determined' || micPermission === 'error') {
+                    console.warn('⚠️ Microphone permission unclear:', micPermission);
+                }
+            } catch (error) {
+                console.warn('⚠️ Could not check microphone permission:', error);
+            }
+        }
+        
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 44100
+                } 
+            });
             console.log('✅ Microphone access granted, stream obtained:', stream);
+            
+            // Log audio track info
+            const audioTracks = stream.getAudioTracks();
+            console.log('🎵 Audio tracks:', audioTracks.length);
+            audioTracks.forEach((track, index) => {
+                console.log(`🎵 Track ${index}:`, {
+                    kind: track.kind,
+                    label: track.label,
+                    enabled: track.enabled,
+                    muted: track.muted,
+                    readyState: track.readyState
+                });
+                
+                const settings = track.getSettings();
+                console.log(`🎵 Track ${index} settings:`, settings);
+            });
             
             // Try to use a more compatible audio format
             let mimeType = 'audio/webm;codecs=opus';
@@ -238,7 +263,11 @@ class WhisperMaestroUI {
             
             this.mediaRecorder.ondataavailable = (event) => {
                 console.log('📦 Audio data available, chunk size:', event.data.size, 'bytes');
-                this.audioChunks.push(event.data);
+                if (event.data.size > 0) {
+                    this.audioChunks.push(event.data);
+                } else {
+                    console.warn('⚠️ Received empty audio chunk!');
+                }
             };
             
             this.mediaRecorder.onstop = async () => {
@@ -247,14 +276,22 @@ class WhisperMaestroUI {
                 
                 if (this.audioChunks.length === 0) {
                     console.error('❌ No audio chunks recorded!');
-                    this.showNotification('No audio was recorded. Please try again.', 'error');
+                    this.showNotification('No audio was recorded. Please check microphone permissions.', 'error');
                     return;
                 }
                 
                 // Log audio chunk details for debugging
+                let totalSize = 0;
                 this.audioChunks.forEach((chunk, index) => {
                     console.log(`📦 Audio chunk ${index}: type=${chunk.type}, size=${chunk.size} bytes`);
+                    totalSize += chunk.size;
                 });
+                console.log('📊 Total audio size:', totalSize, 'bytes');
+                
+                if (totalSize < 5000) {
+                    console.warn('⚠️ WARNING: Total audio size is very small (' + totalSize + ' bytes)');
+                    console.warn('⚠️ This suggests microphone issues or very short recording');
+                }
                 
                 const audioBlob = new Blob(this.audioChunks, { type: this.mediaRecorder.mimeType });
                 console.log('🎵 Audio blob created, size:', audioBlob.size, 'bytes');
@@ -262,7 +299,7 @@ class WhisperMaestroUI {
                 
                 if (audioBlob.size === 0) {
                     console.error('❌ Audio blob is empty!');
-                    this.showNotification('Audio recording is empty. Please try again.', 'error');
+                    this.showNotification('Audio recording is empty. Please check microphone permissions.', 'error');
                     return;
                 }
                 
@@ -280,12 +317,23 @@ class WhisperMaestroUI {
                 // Send to main process for transcription
                 if (typeof window.electronAPI !== 'undefined') {
                     console.log('🚀 Sending audio to main process for transcription...');
+                    console.log('🎵 Using MIME type:', this.mediaRecorder.mimeType);
                     try {
-                        const result = await window.electronAPI.transcribeAudio(uint8Array);
+                        const result = await window.electronAPI.transcribeAudio({
+                            audioData: uint8Array,
+                            mimeType: this.mediaRecorder.mimeType
+                        });
                         console.log('✅ Transcription result received:', result);
+                        
+                        // Hide transcribing status
+                        this.hideTranscribingStatus();
+                        
                     } catch (error) {
                         console.error('❌ Failed to transcribe audio:', error);
                         this.showNotification('Transcription failed. Please check your API key and try again.', 'error');
+                        
+                        // Hide transcribing status on error too
+                        this.hideTranscribingStatus();
                     }
                 } else {
                     console.error('❌ Electron API not available');
@@ -299,6 +347,7 @@ class WhisperMaestroUI {
             
             this.mediaRecorder.onerror = (event) => {
                 console.error('❌ MediaRecorder error:', event);
+                this.showNotification('Recording error occurred. Please try again.', 'error');
             };
             
             this.mediaRecorder.onpause = () => {
@@ -324,7 +373,17 @@ class WhisperMaestroUI {
             
         } catch (error) {
             console.error('❌ Failed to start recording:', error);
-            this.showNotification('Failed to start recording. Please check microphone permissions.', 'error');
+            
+            let errorMessage = 'Failed to start recording. ';
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Microphone access denied. Please grant permission in System Settings.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No microphone found.';
+            } else {
+                errorMessage += 'Please check microphone permissions.';
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 
@@ -365,13 +424,7 @@ class WhisperMaestroUI {
         }
     }
 
-    showTranscription(text) {
-        const transcriptionText = document.getElementById('transcriptionText');
-        if (transcriptionText) {
-            transcriptionText.value = text;
-        }
-        this.showPage('transcriptionPage');
-    }
+
 
     onRecordingStarted() {
         console.log('🎤 Renderer: Received recording started event');
@@ -387,243 +440,148 @@ class WhisperMaestroUI {
     onRecordingCancelled() {
         this.isRecording = false;
         this.updateUI();
-        this.showNotification('Recording cancelled');
+        this.hideTranscribingStatus(); // Hide any active transcribing animation
+        this.showNotification('Recording cancelled', 'cancelled');
     }
 
     onTranscribing() {
         console.log('⏳ Renderer: Received transcribing event');
-        const recordingStatus = document.getElementById('recordingStatus');
-        if (recordingStatus) {
-            recordingStatus.textContent = 'Transcribing...';
-            recordingStatus.className = 'recording-status transcribing';
-        }
-    }
-
-    onTranscriptionComplete(transcription) {
-        console.log('✅ Transcription complete:', transcription);
-        console.log('🔄 About to call pasteToSystemFocusedField with text:', transcription.text);
         
-        // Store the transcription for display if needed
-        this.currentTranscription = transcription.text;
-        
-        // Try to paste into system-wide focused text field
-        // The main process will decide whether to show the window or paste
-        this.pasteToSystemFocusedField(transcription.text);
-    }
-
-    async pasteToSystemFocusedField(text) {
-        console.log('🌍 Attempting to paste transcription into system-wide focused field...');
-        
-        if (typeof window.electronAPI !== 'undefined') {
-            try {
-                await window.electronAPI.pasteToFocusedField(text);
-                console.log('✅ System-wide paste command sent');
-                this.showNotification('Transcription pasted!');
-            } catch (error) {
-                console.error('❌ Failed to paste to focused field:', error);
-                this.showNotification('Transcription copied to clipboard!');
-            }
-        } else {
-            console.log('📋 Electron API not available, falling back to clipboard');
-            this.showNotification('Transcription copied to clipboard!');
-        }
-    }
-
-    pasteToFocusedField(text) {
-        // Check if there's a focused text field within the Electron app
-        const activeElement = document.activeElement;
-        const isTextInput = activeElement && (
-            activeElement.tagName === 'INPUT' || 
-            activeElement.tagName === 'TEXTAREA' || 
-            activeElement.contentEditable === 'true'
-        );
-        
-        if (isTextInput) {
-            console.log('📝 Pasting transcription into focused text field within app');
+        // Show transcribing animation
+        const transcribingStatus = document.getElementById('transcribingStatus');
+        if (transcribingStatus) {
+            transcribingStatus.classList.add('visible');
             
-            // For contentEditable elements
-            if (activeElement.contentEditable === 'true') {
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    range.deleteContents();
-                    range.insertNode(document.createTextNode(text));
-                    range.collapse(false);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
+            // Start progress animation
+            this.startTranscribingProgress();
+        }
+    }
+
+    startTranscribingProgress() {
+        const progressElement = document.getElementById('transcribingProgress');
+        if (!progressElement) return;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            // Simulate progress with non-linear growth
+            if (progress < 30) {
+                progress += Math.random() * 5 + 1; // Fast start
+            } else if (progress < 70) {
+                progress += Math.random() * 3 + 0.5; // Slow middle
+            } else if (progress < 90) {
+                progress += Math.random() * 2 + 0.2; // Very slow near end
             } else {
-                // For regular input/textarea elements
-                const start = activeElement.selectionStart;
-                const end = activeElement.selectionEnd;
-                const currentValue = activeElement.value;
-                
-                // Insert the text at cursor position
-                activeElement.value = currentValue.substring(0, start) + text + currentValue.substring(end);
-                
-                // Set cursor position after the inserted text
-                activeElement.selectionStart = activeElement.selectionEnd = start + text.length;
-                
-                // Trigger input event to notify any listeners
-                activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+                progress += Math.random() * 0.5; // Barely moving at 90%+
             }
             
-            this.showNotification('Transcription pasted into text field!');
-            return true;
-        }
-        return false;
+            // Cap at 95% to avoid reaching 100% before completion
+            progress = Math.min(progress, 95);
+            
+            progressElement.textContent = `${Math.round(progress)}%`;
+        }, 200);
+        
+        // Store interval to clear it later
+        this.transcribingInterval = interval;
     }
 
-    onTranscriptionError(error) {
-        console.error('❌ Renderer: Received transcription error event:', error);
-        const recordingStatus = document.getElementById('recordingStatus');
-        if (recordingStatus) {
-            recordingStatus.textContent = 'Transcription failed';
-            recordingStatus.className = 'recording-status error';
+    hideTranscribingStatus() {
+        const transcribingStatus = document.getElementById('transcribingStatus');
+        const progressElement = document.getElementById('transcribingProgress');
+        
+        if (transcribingStatus) {
+            // Quickly finish progress to 100%
+            if (progressElement) {
+                progressElement.textContent = '100%';
+            }
+            
+            // Wait a moment to show 100%, then hide
+            setTimeout(() => {
+                transcribingStatus.classList.remove('visible');
+                
+                // Reset progress after animation
+                setTimeout(() => {
+                    if (progressElement) {
+                        progressElement.textContent = '0%';
+                    }
+                }, 300);
+            }, 500);
         }
-        this.showNotification(`Error: ${error}`, 'error');
+        
+        // Clear progress interval
+        if (this.transcribingInterval) {
+            clearInterval(this.transcribingInterval);
+            this.transcribingInterval = null;
+        }
     }
+
+
+
+    // Auto-paste functionality moved to main process
+
+
 
     updateUI() {
         const recordBtn = document.getElementById('recordBtn');
-        const recordText = recordBtn?.querySelector('.record-text');
-        const waveformContainer = document.querySelector('.waveform-container');
-        const recordingStatus = document.getElementById('recordingStatus');
+        const recordIcon = recordBtn?.querySelector('.record-icon');
+        const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
 
         if (this.isRecording) {
-            if (recordBtn) recordBtn.classList.add('recording');
-            if (recordText) recordText.textContent = 'Stop Recording';
-            if (waveformContainer) waveformContainer.classList.add('recording');
-            if (recordingStatus) {
-                recordingStatus.textContent = 'Recording...';
-                recordingStatus.className = 'recording-status recording';
-            }
+            document.body.classList.add('recording');
+            if (recordIcon) recordIcon.textContent = 'stop';
+            if (cancelRecordingBtn) cancelRecordingBtn.style.display = 'flex';
         } else {
-            if (recordBtn) recordBtn.classList.remove('recording');
-            if (recordText) recordText.textContent = 'Start Recording';
-            if (waveformContainer) waveformContainer.classList.remove('recording');
-            if (recordingStatus) {
-                recordingStatus.textContent = 'Ready to record';
-                recordingStatus.className = 'recording-status';
-            }
-        }
-    }
-
-    drawWaveform() {
-        // This method is kept for compatibility but doesn't do anything
-        // since we're not using audio visualization anymore
-    }
-
-    updateWaveform(data) {
-        // This method is kept for compatibility but doesn't do anything
-        // since we're not using audio visualization anymore
-    }
-
-    startWaveformAnimation(dataArray) {
-        // Simple UI update - no audio visualization
-        this.updateUI();
-    }
-
-    stopWaveformAnimation() {
-        // Simple UI update - no audio visualization
-        this.updateUI();
-    }
-
-    animateAudioLevel(dataArray) {
-        // Simple UI update - no audio visualization
-        this.updateUI();
-    }
-
-    async showSettings() {
-        if (typeof window.electronAPI !== 'undefined') {
-            try {
-                const settings = await window.electronAPI.getSettings();
-                
-                const provider = document.getElementById('provider');
-                const model = document.getElementById('model');
-                const apiKey = document.getElementById('apiKey');
-                const language = document.getElementById('language');
-                const autoCopy = document.getElementById('autoCopy');
-                const saveAudio = document.getElementById('saveAudio');
-                
-                if (provider) provider.value = settings.provider;
-                if (model) model.value = settings.model;
-                if (apiKey) apiKey.value = settings.apiKey;
-                if (language) language.value = settings.language || '';
-                if (autoCopy) autoCopy.checked = settings.autoCopy;
-                if (saveAudio) saveAudio.checked = settings.saveAudio;
-            } catch (error) {
-                console.error('Failed to load settings:', error);
-            }
+            document.body.classList.remove('recording');
+            if (recordIcon) recordIcon.textContent = 'mic';
+            if (cancelRecordingBtn) cancelRecordingBtn.style.display = 'none';
         }
         
-        const settingsModal = document.getElementById('settingsModal');
-        if (settingsModal) {
-            settingsModal.style.display = 'flex';
-        }
+        // Update shortcut display (this will update both tooltip and badge)
+        this.updateShortcutDisplay();
     }
 
-    hideSettings() {
-        const settingsModal = document.getElementById('settingsModal');
-        if (settingsModal) {
-            settingsModal.style.display = 'none';
-        }
-    }
-
-    async saveSettings() {
-        if (typeof window.electronAPI === 'undefined') {
-            this.showNotification('Electron API not available', 'error');
-            return;
-        }
-
-        try {
-            const formData = new FormData(document.getElementById('settingsForm'));
-            const settings = {
-                provider: formData.get('provider'),
-                model: formData.get('model'),
-                language: formData.get('language') || undefined,
-                autoCopy: formData.get('autoCopy') === 'on',
-                saveAudio: formData.get('saveAudio') === 'on'
-            };
-            
-            await window.electronAPI.saveSettings(settings);
-            
-            // Save API key separately for security
-            const apiKey = formData.get('apiKey');
-            if (apiKey) {
-                console.log('🔑 Saving API key securely...');
-                await window.electronAPI.saveApiKey(apiKey);
-                console.log('✅ API key saved successfully');
-            }
-            
-            this.hideSettings();
-            this.showNotification('Settings saved!');
-        } catch (error) {
-            console.error('Failed to save settings:', error);
-            this.showNotification('Failed to save settings', 'error');
-        }
-    }
-
-    async showHistory() {
-        if (typeof window.electronAPI !== 'undefined') {
-            try {
-                const history = await window.electronAPI.getHistory();
-                this.renderHistory(history);
-            } catch (error) {
-                console.error('Failed to load history:', error);
-            }
+    async cancelRecording() {
+        if (!this.isRecording) return;
+        
+        console.log('❌ Canceling recording...');
+        
+        // Stop the media recorder
+        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            this.mediaRecorder.stop();
         }
         
-        const historyModal = document.getElementById('historyModal');
-        if (historyModal) {
-            historyModal.style.display = 'flex';
+        // Stop all tracks
+        if (this.mediaRecorder && this.mediaRecorder.stream) {
+            this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+
+        this.isRecording = false;
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        
+        this.updateUI();
+        this.showNotification('Recording cancelled', 'cancelled');
+
+        // Notify main process
+        if (typeof window.electronAPI !== 'undefined') {
+            try {
+                await window.electronAPI.cancelRecording();
+            } catch (error) {
+                console.error('Failed to notify main process of cancellation:', error);
+        }
+    }
+    }
+
+    openSettings() {
+        console.log('⚙️ Opening settings window...');
+        if (typeof window.electronAPI !== 'undefined') {
+            window.electronAPI.openSettings();
         }
     }
 
-    hideHistory() {
-        const historyModal = document.getElementById('historyModal');
-        if (historyModal) {
-            historyModal.style.display = 'none';
+    openHistory() {
+        console.log('📋 Opening history window...');
+        if (typeof window.electronAPI !== 'undefined') {
+            window.electronAPI.openHistory();
         }
     }
 
@@ -640,8 +598,12 @@ class WhisperMaestroUI {
                 <div class="history-item-header">
                     <span class="history-item-date">${new Date(item.timestamp).toLocaleString()}</span>
                     <div class="history-item-actions">
-                        <button onclick="app.copyHistoryItem('${item.text}')" title="Copy">📋</button>
-                        <button onclick="app.deleteHistoryItem('${item.id}')" title="Delete">🗑️</button>
+                        <button onclick="app.copyHistoryItem('${item.text}')" title="Copy" class="history-action-btn">
+                            <span class="material-icons">content_copy</span>
+                        </button>
+                        <button onclick="app.deleteHistoryItem('${item.id}')" title="Delete" class="history-action-btn">
+                            <span class="material-icons">delete_outline</span>
+                        </button>
                     </div>
                 </div>
                 <div class="history-item-text">${item.text}</div>
@@ -650,32 +612,7 @@ class WhisperMaestroUI {
         });
     }
 
-    async copyTranscription() {
-        const transcriptionText = document.getElementById('transcriptionText');
-        if (transcriptionText && transcriptionText.value) {
-            if (typeof window.electronAPI !== 'undefined') {
-                await window.electronAPI.copyToClipboard(transcriptionText.value);
-            } else {
-                navigator.clipboard.writeText(transcriptionText.value);
-            }
-            this.showNotification('Copied to clipboard!');
-        }
-    }
 
-    saveTranscription() {
-        this.showNotification('Transcription saved to history!');
-    }
-
-    toggleEditMode() {
-        const transcriptionText = document.getElementById('transcriptionText');
-        if (transcriptionText) {
-            transcriptionText.readOnly = !transcriptionText.readOnly;
-            const editBtn = document.getElementById('editBtn');
-            if (editBtn) {
-                editBtn.textContent = transcriptionText.readOnly ? '✏️ Edit' : '💾 Save';
-            }
-        }
-    }
 
     filterHistory(searchTerm) {
         // Implementation for filtering history
@@ -719,27 +656,98 @@ class WhisperMaestroUI {
     }
 
     showNotification(message, type = 'success') {
-        // Simple notification implementation
+        // Create notification with Material UI design
         const notification = document.createElement('div');
+        
+        // Set base styles
+        notification.className = `notification notification-${type}`;
+        
+        // Get appropriate icon and colors
+        let iconName, bgColor, textColor;
+        switch (type) {
+            case 'error':
+            case 'cancelled':
+                iconName = 'error_outline';
+                bgColor = '#ffebee';
+                textColor = '#c62828';
+                break;
+            case 'warning':
+                iconName = 'warning';
+                bgColor = '#fff3e0';
+                textColor = '#ef6c00';
+                break;
+            default: // success
+                iconName = 'check_circle_outline';
+                bgColor = '#e8f5e8';
+                textColor = '#2e7d32';
+        }
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="material-icons notification-icon">${iconName}</span>
+                <span class="notification-text">${message}</span>
+            </div>
+        `;
+        
         notification.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'error' ? '#dc3545' : '#28a745'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: ${bgColor};
+            color: ${textColor};
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 10000;
-            font-size: 14px;
-        `
-        notification.textContent = message;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        `;
+        
+        // Add notification styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 16px;
+            }
+            .notification-icon {
+                font-size: 18px;
+                opacity: 0.8;
+            }
+            .notification-text {
+                font-size: 14px;
+                font-weight: 500;
+                letter-spacing: 0.25px;
+            }
+        `;
+        document.head.appendChild(style);
+        
         document.body.appendChild(notification);
         
+        // Animate in
+        requestAnimationFrame(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        
+        // Auto-remove with animation
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 3000);
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(-50%) translateY(-100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+                if (style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
+            }, 300);
+        }, type === 'cancelled' ? 2000 : 3000);
     }
 
     onShortcutRecordingToggled(isRecording) {
@@ -756,11 +764,93 @@ class WhisperMaestroUI {
             console.log('🎹 Renderer: Stopping recording via shortcut - will be handled by stop-renderer-recording event');
         }
     }
+
+    async updateShortcutDisplay() {
+        if (typeof window.electronAPI !== 'undefined' && window.electronAPI.getCurrentShortcut) {
+            try {
+                const shortcut = await window.electronAPI.getCurrentShortcut();
+                const recordBtn = document.getElementById('recordBtn');
+                const recordLabel = recordBtn?.querySelector('.btn-label');
+                const shortcutDisplay = document.getElementById('shortcutDisplay');
+                
+                if (shortcut) {
+                    // Convert shortcut to display format
+                    const displayShortcut = this.electronToDisplayShortcut(shortcut);
+                    
+                    // Update button text with current state
+                    const buttonText = this.isRecording ? 'Stop' : 'Record';
+                    if (recordLabel) {
+                        recordLabel.innerHTML = `${buttonText} <span id="shortcutDisplay" class="shortcut-badge">${displayShortcut}</span>`;
+                    }
+                    
+                    // Update tooltip
+                    if (recordBtn) {
+                        const action = this.isRecording ? 'Stop' : 'Start';
+                        recordBtn.title = `${action} Recording (${displayShortcut})`;
+                    }
+                }
+            } catch (error) {
+                console.log('⚠️ Could not get current shortcut:', error);
+                
+                // Fallback: set button text without shortcut
+                const recordLabel = document.getElementById('recordBtn')?.querySelector('.btn-label');
+                if (recordLabel) {
+                    const buttonText = this.isRecording ? 'Stop' : 'Record';
+                    recordLabel.innerHTML = `${buttonText} <span id="shortcutDisplay" class="shortcut-badge">⌘,</span>`;
+                }
+            }
+        }
+    }
+
+    electronToDisplayShortcut(electronShortcut) {
+        let display = electronShortcut;
+        
+        // Replace modifiers based on platform
+        if (navigator.platform.includes('Mac')) {
+            display = display.replace('CommandOrControl', '⌘');
+            display = display.replace('Alt', '⌥');
+        } else {
+            display = display.replace('CommandOrControl', 'Ctrl');
+            display = display.replace('Alt', 'Alt');
+        }
+        
+        display = display.replace('Shift', '⇧');
+        
+        // Replace special keys with symbols
+        const keyReplacements = {
+            'Space': 'Space',
+            'Up': '↑',
+            'Down': '↓',
+            'Left': '←',
+            'Right': '→',
+            'Delete': 'Del',
+            'Backspace': '⌫',
+            'Return': '↵',
+            'Tab': '⇥',
+            'Escape': 'Esc'
+        };
+        
+        Object.entries(keyReplacements).forEach(([electron, symbol]) => {
+            display = display.replace(new RegExp(`\\b${electron}\\b`, 'g'), symbol);
+        });
+        
+        return display;
+    }
+
+    closeWindow() {
+        console.log('🚪 Renderer: Closing window');
+        if (window.electronAPI && window.electronAPI.closeWindow) {
+            window.electronAPI.closeWindow();
+        } else {
+            // Fallback: try to close via window
+            window.close();
+        }
+    }
 }
 
 // Initialize the UI when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM loaded, initializing WhisperMaestro UI...');
-    window.app = new WhisperMaestroUI();
+    window.app = new WhisperMaestroApp();
     console.log('✅ WhisperMaestro UI initialized successfully');
 });

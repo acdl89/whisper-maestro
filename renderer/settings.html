@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhisperMaestro Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        
+        .settings-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            padding: 12px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+        
+        .settings-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #212121;
+        }
+        
+        .settings-content {
+            flex: 1;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #424242;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fafafa;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2196f3;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(33,150,243,0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+        
+        .settings-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 8px;
+            border-top: 1px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1>Settings</h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-primary" id="saveSettingsBtn">
+                    <span class="material-icons">save</span>
+                    Save Settings
+                </button>
+                <button id="closeSettings" class="square-control-button secondary-btn" title="Close">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="settings-content">
+            <form id="settingsForm" class="settings-form">
+                <div class="form-group">
+                    <label for="provider">Provider:</label>
+                    <select id="provider" name="provider">
+                        <option value="openai">OpenAI Whisper</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="model">Model:</label>
+                    <select id="model" name="model">
+                        <option value="whisper-1">Whisper-1</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiKey">API Key:</label>
+                    <input type="password" id="apiKey" name="apiKey" placeholder="Enter your API key">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recordingShortcut">Recording Shortcut:</label>
+                    <div class="shortcut-input-container">
+                        <input type="text" id="recordingShortcut" name="recordingShortcut" readonly placeholder="Click and press keys..." class="shortcut-input">
+                        <button type="button" id="clearShortcut" class="clear-shortcut-btn">×</button>
+                    </div>
+                    <div class="shortcut-help">Click in the field above and press your desired key combination</div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Permissions</h3>
+                    <div class="setting-item">
+                        <label>Microphone Access</label>
+                        <div class="permission-status">
+                            <span id="microphoneStatus" class="status-indicator">Checking...</span>
+                            <button type="button" id="checkMicBtn" class="btn btn-secondary">Check Permission</button>
+                        </div>
+                        <p class="setting-description">Required for recording audio</p>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>Accessibility Access</label>
+                        <div class="permission-status">
+                            <span id="accessibilityStatus" class="status-indicator">Checking...</span>
+                            <button type="button" id="requestAccessibilityBtn" class="btn btn-secondary">Grant Permission</button>
+                        </div>
+                        <p class="setting-description">Required for auto-paste functionality. Click "Grant Permission" to open System Settings.</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html> 

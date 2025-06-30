@@ -37,7 +37,6 @@
   "dependencies": {
     "openai": "^4.0.0",
     "electron-store": "^8.1.0",
-    "keytar": "^7.9.0",
     "electron-updater": "^6.1.0"
   },
   "build": {
@@ -50,6 +49,7 @@
     "files": [
       "dist/**/*",
       "renderer/**/*",
+      "assets/**/*",
       "node_modules/**/*",
       "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
@@ -75,7 +75,7 @@
           "arch": ["x64", "arm64"]
         }
       ],
-      "icon": "assets/icons/mac/icon.icns",
+      "icon": "assets/dock-icon.icns",
       "hardenedRuntime": true,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",

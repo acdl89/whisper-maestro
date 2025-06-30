@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to WhisperMaestro</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+
+        .onboarding-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+        }
+
+        .onboarding-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .onboarding-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .app-logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .app-logo .material-icons {
+            font-size: 40px;
+            color: white;
+        }
+
+        .welcome-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 15px;
+            color: #7f8c8d;
+            line-height: 1.4;
+            margin-bottom: 0;
+        }
+
+        .setup-step {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 12px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .step-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .api-key-input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 15px 50px 15px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: white;
+            color: #2c3e50;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .api-key-input.error {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        .toggle-visibility {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #95a5a6;
+            padding: 5px;
+            border-radius: 5px;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-visibility:hover {
+            color: #667eea;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 8px;
+        }
+
+        .help-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .help-link:hover {
+            color: #357abd;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #e74c3c;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .onboarding-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: auto;
+            padding-top: 20px;
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+        .onboarding-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .onboarding-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: #7f8c8d;
+            border: 2px solid #e1e8ed;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #bdc3c7;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-in-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Remove any potential interference */
+        input, button {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        /* Ensure smooth animations */
+        * {
+            transition: all 0.2s ease;
+        }
+
+        /* Step 2 Styles */
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-icon .material-icons {
+            font-size: 20px;
+            color: white;
+        }
+
+        .feature-content h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 4px 0;
+        }
+
+        .feature-content p {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .shortcut-customizer {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shortcut-display {
+            background: #2c3e50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .shortcut-change-btn {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shortcut-change-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .shortcut-change-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Recording shortcut modal */
+        .shortcut-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .shortcut-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .shortcut-modal h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+        }
+
+        .shortcut-modal p {
+            margin: 0 0 16px 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .shortcut-recording {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .shortcut-modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .shortcut-modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .shortcut-modal-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .shortcut-modal-btn.secondary {
+            background: #f8f9fa;
+            color: #7f8c8d;
+        }
+
+        .permission-setup {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex: 1;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .permission-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .permission-info {
+            flex: 1;
+        }
+
+        .permission-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .permission-desc {
+            font-size: 0.875rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-status .status-indicator {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .status-granted {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-denied {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-checking {
+            background: rgba(156, 163, 175, 0.2);
+            color: #9ca3af;
+        }
+
+        .permission-btn {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+
+        .permission-btn:hover {
+            background: linear-gradient(135deg, #357abd 0%, #2968a3 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .permission-btn:disabled {
+            background: rgba(156, 163, 175, 0.3);
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .completion-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-wrapper">
+        <!-- Step 1: API Key Setup -->
+        <div class="onboarding-container" id="step1" style="display: flex;">
+            <div class="welcome-header">
+                <div class="app-logo">
+                    <span class="material-icons">mic</span>
+                </div>
+                <h1 class="welcome-title">Welcome to WhisperMaestro</h1>
+                <p class="welcome-subtitle">
+                    Transform your voice into text with AI-powered transcription.<br>
+                    Let's get you set up in just a moment.
+                </p>
+            </div>
+
+            <div class="setup-step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Connect your OpenAI API Key</div>
+                </div>
+                <p class="step-description">
+                    WhisperMaestro uses OpenAI's Whisper API for accurate transcription. 
+                    Your API key is stored securely and encrypted on your device.
+                </p>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
+                <div class="api-key-input-group">
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
+                        class="api-key-input" 
+                        placeholder="sk-proj-..." 
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button type="button" class="toggle-visibility" id="toggleVisibilityBtn">
+                        <span class="material-icons">visibility</span>
+                    </button>
+                </div>
+                
+                <div class="help-text">
+                    Don't have an API key yet? 
+                    <a href="#" class="help-link" id="getApiKeyLink">Get one from OpenAI</a> 
+                    • Your key stays on your device
+                </div>
+            </div>
+
+            <div class="onboarding-actions">
+                <button type="button" class="onboarding-btn btn-secondary" id="skipBtn">
+                    <span class="material-icons">schedule</span>
+                    Skip for now
+                </button>
+                <button type="button" class="onboarding-btn btn-primary" id="continueBtn">
+                    <span id="continueText">Continue</span>
+                    <span id="loadingSpinner" class="loading-spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Permissions Setup -->
+        <div class="onboarding-container" id="step2" style="display: none;">
+            <div class="welcome-header">
+                <div class="app-logo">
+                    <span class="material-icons">security</span>
+                </div>
+                <h1 class="welcome-title">Grant Required Permissions</h1>
+                <p class="welcome-subtitle">
+                    WhisperMaestro needs access to your microphone and accessibility features<br>
+                    to provide the best transcription experience.
+                </p>
+            </div>
+
+            <div class="setup-step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Setup Permissions</div>
+                </div>
+                <p class="step-description">
+                    Grant microphone access to record audio and accessibility access to automatically paste transcriptions into your active applications.
+                </p>
+                
+                <div class="permission-setup">
+                    <div class="permission-item">
+                        <div class="permission-info">
+                            <div class="permission-title">🎤 Microphone Access</div>
+                            <div class="permission-desc">Required to record audio for transcription</div>
+                            <div class="permission-status">
+                                <span id="micPermissionStatus" class="status-indicator">Checking...</span>
+                            </div>
+                        </div>
+                        <button type="button" id="requestMicPermissionBtn" class="permission-btn">Grant Access</button>
+                    </div>
+                    
+                    <div class="permission-item">
+                        <div class="permission-info">
+                            <div class="permission-title">♿ Accessibility Access</div>
+                            <div class="permission-desc">Enables automatic pasting of transcriptions</div>
+                            <div class="permission-status">
+                                <span id="accessibilityPermissionStatus" class="status-indicator">Checking...</span>
+                            </div>
+                        </div>
+                        <button type="button" id="requestAccessibilityPermissionBtn" class="permission-btn">Grant Access</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="onboarding-actions">
+                <button type="button" class="onboarding-btn btn-secondary" id="backToStep1Btn">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </button>
+                <button type="button" class="onboarding-btn btn-primary" id="continueToStep3Btn">
+                    <span class="material-icons">arrow_forward</span>
+                    Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: How It Works & Completion -->
+        <div class="onboarding-container" id="step3" style="display: none;">
+            <div class="welcome-header">
+                <div class="app-logo">
+                    <span class="material-icons">tips_and_updates</span>
+                </div>
+                <h1 class="welcome-title">How WhisperMaestro Works</h1>
+                <p class="welcome-subtitle">
+                    Simple voice-to-text transcription with just a keyboard shortcut.<br>
+                    Let's customize your experience.
+                </p>
+            </div>
+
+            <div class="setup-step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">You're All Set!</div>
+                </div>
+                
+                <div class="how-it-works-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <span class="material-icons">keyboard</span>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Global Shortcut</h3>
+                            <p>Press your shortcut anywhere to start/stop recording</p>
+                            <div class="shortcut-customizer">
+                                <div class="shortcut-display" id="shortcutDisplay">⌘ ,</div>
+                                <button type="button" class="shortcut-change-btn" id="changeShortcutBtn">Change</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <span class="material-icons">auto_fix_high</span>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Smart Auto-Paste</h3>
+                            <p>Automatically pastes transcription into focused text fields</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <span class="material-icons">content_copy</span>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Always Copied</h3>
+                            <p>Every transcription is copied to your clipboard as backup</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <span class="material-icons">menu</span>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Menu Bar Access</h3>
+                            <p>Quick access via menu bar icon, dock, or tray menu</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="onboarding-actions">
+                <button type="button" class="onboarding-btn btn-secondary" id="backToStep2Btn">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </button>
+                <button type="button" class="onboarding-btn btn-primary" id="getStartedBtn">
+                    <span class="material-icons">rocket_launch</span>
+                    Get Started
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shortcut Recording Modal -->
+    <div class="shortcut-modal" id="shortcutModal" style="display: none;">
+        <div class="shortcut-modal-content">
+            <h3>Record New Shortcut</h3>
+            <p>Press your desired key combination</p>
+            <div class="shortcut-recording" id="shortcutRecording">
+                Waiting for input...
+            </div>
+            <div class="shortcut-modal-actions">
+                <button type="button" class="shortcut-modal-btn secondary" id="cancelShortcutBtn">Cancel</button>
+                <button type="button" class="shortcut-modal-btn primary" id="saveShortcutBtn" disabled>Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="onboarding.js"></script>
+</body>
+</html> 
