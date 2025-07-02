@@ -723,11 +723,6 @@ class SettingsWindow {
                 }
             }
             
-            // Close window after a brief delay
-            setTimeout(() => {
-                this.closeWindow();
-            }, 1000);
-            
         } catch (error) {
             console.error('❌ Failed to save settings:', error);
             this.showNotification('Failed to save settings', 'error');
