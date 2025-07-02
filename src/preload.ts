@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getHistory: () => ipcRenderer.invoke('get-history'),
   deleteHistoryItem: (id: string) => ipcRenderer.invoke('delete-history-item', id),
   copyToClipboard: (text: string) => ipcRenderer.invoke('copy-to-clipboard', text),
-  transcribeAudio: (audioRequest: { audioData: Buffer, mimeType: string }) => ipcRenderer.invoke('transcribe-audio', audioRequest),
+  transcribeAudio: (audioRequest: { audioData: Buffer, mimeType: string, mode?: string }) => ipcRenderer.invoke('transcribe-audio', audioRequest),
   notifyRecordingStarted: () => ipcRenderer.send('ui-recording-started'),
   notifyRecordingStopped: () => ipcRenderer.send('ui-recording-stopped'),
   cancelRecording: () => ipcRenderer.invoke('cancel-recording'),
@@ -16,6 +16,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   openSettings: () => ipcRenderer.send('open-settings'),
   openHistory: () => ipcRenderer.send('open-history'),
+  
+  // Mode management methods
+  getModeSettings: () => ipcRenderer.invoke('get-mode-settings'),
+  saveModeSettings: (modeSettings: any) => ipcRenderer.invoke('save-mode-settings', modeSettings),
+  getAvailableModes: () => ipcRenderer.invoke('get-available-modes'),
   
   onRecordingStarted: (callback: () => void) => {
     ipcRenderer.on('recording-started', () => callback());
@@ -32,8 +37,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onTranscribing: (callback: () => void) => {
     ipcRenderer.on('transcribing', () => callback());
   },
+  onTransforming: (callback: (mode: string) => void) => {
+    ipcRenderer.on('transforming', (event, mode) => callback(mode));
+  },
+  onTransformationError: (callback: (error: string) => void) => {
+    ipcRenderer.on('transformation-error', (event, error) => callback(error));
+  },
   onShortcutRecordingToggled: (callback: (isRecording: boolean) => void) => {
     ipcRenderer.on('shortcut-recording-toggled', (event, isRecording) => callback(isRecording));
+  },
+  onSetRecordingMode: (callback: (mode: string) => void) => {
+    ipcRenderer.on('set-recording-mode', (event, mode) => callback(mode));
   },
   onTranscriptionComplete: (callback: (transcription: any) => void) => {
     ipcRenderer.on('transcription-complete', (event, transcription) => callback(transcription));

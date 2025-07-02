@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, Tray, ipcMain, globalShortcut, shell, nativeImage } from 'electron';
 import * as path from 'path';
 import { TranscriptionService } from './services/transcriptionService';
+import { ModeService } from './services/modeService';
 import { SettingsManager } from './utils/settingsManager';
 import { HistoryManager } from './utils/historyManager';
 import { logger } from './utils/logger';
@@ -12,17 +13,20 @@ class WhisperMaestroApp {
   private onboardingWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
   private transcriptionService: TranscriptionService;
+  private modeService: ModeService;
   private settingsManager: SettingsManager;
   private historyManager: HistoryManager;
   private isRecording = false;
   private lastTranscription: any = null;
   private currentShortcut: string = 'CommandOrControl+,';
+  private modeShortcuts: Map<string, string> = new Map(); // mode -> shortcut mapping
   private needsOnboarding = false;
 
   constructor() {
     this.transcriptionService = new TranscriptionService();
     this.settingsManager = new SettingsManager();
     this.historyManager = new HistoryManager();
+    this.modeService = new ModeService(this.settingsManager);
   }
 
   private async checkOnboardingNeeded() {
@@ -212,9 +216,9 @@ class WhisperMaestroApp {
     // Unregister any existing shortcuts
     globalShortcut.unregisterAll();
     
-    // Register the new shortcut
+    // Register the main recording shortcut
     const ret = globalShortcut.register(this.currentShortcut, () => {
-      logger.log('🎹 Shortcut triggered:', this.currentShortcut);
+      logger.log('🎹 Main shortcut triggered:', this.currentShortcut);
       this.toggleRecording();
     });
 
@@ -222,6 +226,83 @@ class WhisperMaestroApp {
       logger.log('✅ Global shortcut registered:', this.currentShortcut);
     } else {
       logger.log('❌ Failed to register global shortcut:', this.currentShortcut);
+    }
+    
+    // Register mode-specific shortcuts
+    await this.setupModeShortcuts();
+  }
+
+  private async setupModeShortcuts() {
+    try {
+      const modeSettings = await this.modeService.getModeSettings();
+      logger.log('🎭 Setting up mode shortcuts...');
+      
+      // Clear existing mode shortcuts
+      this.modeShortcuts.clear();
+      
+      Object.entries(modeSettings.modes).forEach(([modeKey, modeConfig]) => {
+        if (modeConfig.enabled && modeConfig.shortcut && modeConfig.shortcut.trim() !== '') {
+          const shortcut = modeConfig.shortcut.trim();
+          
+          // Skip if this shortcut is already the main recording shortcut
+          if (shortcut === this.currentShortcut) {
+            logger.log(`⚠️ Skipping mode shortcut "${shortcut}" for ${modeKey} - conflicts with main shortcut`);
+            return;
+          }
+          
+          // Skip if this shortcut is already registered for another mode
+          if (Array.from(this.modeShortcuts.values()).includes(shortcut)) {
+            logger.log(`⚠️ Skipping duplicate shortcut "${shortcut}" for ${modeKey}`);
+            return;
+          }
+          
+          try {
+            const registered = globalShortcut.register(shortcut, () => {
+              logger.log(`🎹 Mode shortcut triggered: ${shortcut} for ${modeKey}`);
+              this.startRecordingWithMode(modeKey);
+            });
+            
+            if (registered) {
+              this.modeShortcuts.set(modeKey, shortcut);
+              logger.log(`✅ Mode toggle shortcut registered: ${shortcut} for ${modeKey} (${modeConfig.name})`);
+            } else {
+              logger.log(`❌ Failed to register mode shortcut: ${shortcut} for ${modeKey}`);
+            }
+          } catch (error) {
+            logger.error(`❌ Error registering shortcut "${shortcut}" for ${modeKey}:`, error);
+          }
+        }
+      });
+      
+      logger.log(`🎯 Registered ${this.modeShortcuts.size} mode toggle shortcuts`);
+      
+    } catch (error) {
+      logger.error('❌ Failed to setup mode shortcuts:', error);
+    }
+  }
+
+  private startRecordingWithMode(modeKey: string) {
+    logger.log(`🎭 Mode shortcut triggered for ${modeKey}, current recording state: ${this.isRecording}`);
+    
+    if (this.isRecording) {
+      logger.log(`🛑 Already recording, stopping recording via ${modeKey} shortcut`);
+      this.stopRecording();
+    } else {
+      logger.log(`🎯 Starting recording with mode: ${modeKey}`);
+      
+      // Set the mode in the main window if it exists
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send('set-recording-mode', modeKey);
+      }
+      
+      // Start recording
+      this.startRecordingWithFocusCheck();
+    }
+    
+    // Notify the renderer about the mode shortcut-triggered recording change
+    if (this.mainWindow) {
+      logger.log('📡 Sending mode shortcut-triggered recording state to renderer');
+      this.mainWindow.webContents.send('shortcut-recording-toggled', this.isRecording);
     }
   }
 
@@ -318,6 +399,12 @@ class WhisperMaestroApp {
     // Show window for visual feedback but without stealing focus
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       logger.log('🪟 Showing existing window for recording feedback (without stealing focus)');
+      
+      // Ensure window is visible on all workspaces
+      if (process.platform === 'darwin') {
+        this.mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      }
+      
       this.mainWindow.showInactive(); // Show without stealing focus
       this.startRecording();
     } else {
@@ -434,25 +521,69 @@ class WhisperMaestroApp {
         logger.log('📝 Transcription completed:', transcription);
         
         if (transcription) {
-          logger.log('💾 Saving transcription to history...');
-          await this.historyManager.addTranscription(transcription);
+          let finalResult = transcription;
           
-          logger.log('📋 Copying transcription to clipboard...');
-          require('electron').clipboard.writeText(transcription.text);
+          // Check if mode transformation is needed
+          const selectedMode = audioRequest.mode || 'transcript';
+          logger.log('🎭 Selected mode:', selectedMode);
           
-          // Store transcription for potential window display
-          this.lastTranscription = transcription;
+          if (selectedMode !== 'transcript') {
+            // Show transforming status
+            if (this.mainWindow) {
+              logger.log('📡 Sending transforming status to renderer');
+              this.mainWindow.webContents.send('transforming', selectedMode);
+            }
+            
+            try {
+              logger.log('🤖 Starting mode transformation...');
+              const transformedText = await this.modeService.transformTranscript(transcription.text, selectedMode);
+              
+              // Update the result with transformed content
+              finalResult = {
+                ...transcription,
+                text: transformedText,
+                originalText: transcription.text, // Keep original for reference
+                mode: selectedMode
+              };
+              
+              logger.log('✨ Mode transformation completed successfully');
+            } catch (transformError) {
+              logger.error('❌ Mode transformation failed:', transformError);
+              
+              // Send transformation error to renderer
+              if (this.mainWindow) {
+                const errorMessage = transformError instanceof Error ? transformError.message : 'Transformation failed';
+                this.mainWindow.webContents.send('transformation-error', errorMessage);
+              }
+              
+              // Fall back to original transcript
+              logger.log('🔄 Falling back to original transcript');
+              finalResult = {
+                ...transcription,
+                mode: 'transcript'
+              };
+            }
+          }
+          
+          logger.log('💾 Saving result to history...');
+          await this.historyManager.addTranscription(finalResult);
+          
+          logger.log('📋 Copying result to clipboard...');
+          require('electron').clipboard.writeText(finalResult.text);
+          
+          // Store result for potential window display
+          this.lastTranscription = finalResult;
           
           // Trigger auto-paste logic directly
-          await this.handleTranscriptionComplete(transcription);
+          await this.handleTranscriptionComplete(finalResult);
           
           if (this.mainWindow) {
             logger.log('📡 Sending transcription complete to renderer');
-            this.mainWindow.webContents.send('transcription-complete', transcription);
+            this.mainWindow.webContents.send('transcription-complete', finalResult);
           }
           
           logger.log('✅ Transcription process completed successfully');
-          return transcription;
+          return finalResult;
         } else {
           logger.warn('⚠️ No transcription returned from service');
           throw new Error('No transcription returned');
@@ -524,6 +655,40 @@ class WhisperMaestroApp {
 
     ipcMain.handle('get-recent-logs', (event, lines = 50) => {
       return logger.getRecentLogs(lines);
+    });
+
+    // Mode management handlers
+    ipcMain.handle('get-mode-settings', async () => {
+      try {
+        return await this.modeService.getModeSettings();
+      } catch (error) {
+        logger.error('❌ Failed to get mode settings:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('save-mode-settings', async (event, modeSettings) => {
+      try {
+        await this.modeService.saveModeSettings(modeSettings);
+        logger.log('✅ Mode settings saved successfully');
+        
+        // Refresh mode shortcuts after saving
+        await this.setupModeShortcuts();
+        
+        return true;
+      } catch (error) {
+        logger.error('❌ Failed to save mode settings:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('get-available-modes', async () => {
+      try {
+        return await this.modeService.getAvailableModes();
+      } catch (error) {
+        logger.error('❌ Failed to get available modes:', error);
+        throw error;
+      }
     });
 
     // System permission checks
@@ -661,6 +826,12 @@ class WhisperMaestroApp {
     
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       logger.log('Showing existing window');
+      
+      // Ensure window is visible on all workspaces (in case setting was lost)
+      if (process.platform === 'darwin') {
+        this.mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      }
+      
       this.mainWindow.show();
       this.mainWindow.focus();
       return;
@@ -678,8 +849,8 @@ class WhisperMaestroApp {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
     
-    const windowWidth = 300;
-    const windowHeight = 120;
+    const windowWidth = 320;
+    const windowHeight = 110;
     const bottomMargin = 0; // Distance from bottom of screen
     
     this.mainWindow = new BrowserWindow({
@@ -702,8 +873,14 @@ class WhisperMaestroApp {
       maximizable: false,
       movable: true,
       alwaysOnTop: false,
-      skipTaskbar: false
+      skipTaskbar: false // Keep in dock
     });
+
+    // Make window available across all desktop spaces (macOS)
+    if (process.platform === 'darwin') {
+      this.mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      logger.log('🖥️ Window set to be visible on all workspaces');
+    }
 
     const htmlPath = path.join(__dirname, '../renderer/index.html');
     logger.log('Loading HTML from:', htmlPath);

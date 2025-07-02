@@ -17,6 +17,18 @@
             <div id="recordingPage" class="page active">
                 <div class="recording-section">
                     <div class="recording-controls">
+                        <!-- Mode Selector -->
+                        <div class="mode-selector-container">
+                            <label for="modeSelector" class="mode-label">Mode:</label>
+                            <select id="modeSelector" class="mode-selector">
+                                <option value="transcript">Transcript</option>
+                                <option value="email">Email</option>
+                                <option value="slack">Slack</option>
+                                <option value="notes">Meeting Notes</option>
+                                <option value="tasks">Action Items</option>
+                            </select>
+                        </div>
+                        
                         <!-- Status area for transcribing animation -->
                         <div id="statusArea" class="status-area">
                             <div id="transcribingStatus" class="transcribing-status">
@@ -37,10 +49,6 @@
                             <button id="recordBtn" class="square-control-button record-btn" title="Start Recording (⌘,)">
                                 <span class="material-icons record-icon">mic</span>
                                 <span class="btn-label">Record <span id="shortcutDisplay" class="shortcut-badge">⌘,</span></span>
-                            </button>
-                            <button id="cancelRecordingBtn" class="square-control-button cancel-btn" title="Cancel Recording (Esc)">
-                                <span class="material-icons">close</span>
-                                <span class="btn-label">Esc</span>
                             </button>
                             <button id="settingsBtn" class="square-control-button secondary-btn" title="Settings">
                                 <span class="material-icons">settings</span>

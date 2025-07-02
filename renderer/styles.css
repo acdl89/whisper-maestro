@@ -105,7 +105,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    padding: 16px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -127,6 +127,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     height: 100%;
 }
 
@@ -135,6 +136,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 0px;
+    width: 100%;
 }
 
 .pill-record-button {
@@ -668,8 +670,6 @@ body {
     gap: 8px;
     justify-content: center;
     align-items: center;
-    margin-top: 12px;
-    margin-bottom: 16px;
 }
 
 #cancelRecordingBtn {
@@ -801,9 +801,11 @@ body.recording #cancelRecordingBtn {
 
 /* Status area for transcribing */
 .status-area {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
     pointer-events: none;
 }
 
@@ -1011,13 +1013,13 @@ body.recording #cancelRecordingBtn {
 /* Close Window Button */
 .close-window-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: none;
+    border-radius: 6px;
     width: 24px;
     height: 24px;
-    border: none;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1025,23 +1027,18 @@ body.recording #cancelRecordingBtn {
     transition: all 0.2s ease;
     z-index: 1000;
     -webkit-app-region: no-drag;
-    opacity: 0.7;
+    color: #9ca3af;
 }
 
 .close-window-btn:hover {
-    background: rgba(255, 255, 255, 1);
-    opacity: 1;
+    color: #374151;
     transform: scale(1.1);
 }
 
 .close-window-btn .material-icons {
-    font-size: 16px;
-    color: #6b7280;
+    font-size: 18px;
     line-height: 1;
-}
-
-.close-window-btn:hover .material-icons {
-    color: #374151;
+    user-select: none;
 }
 
 /* Settings specific styles */
@@ -1183,4 +1180,47 @@ body.recording #cancelRecordingBtn {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Mode Selector */
+.mode-selector-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.mode-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    user-select: none;
+}
+
+.mode-selector {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #424242;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    min-width: 160px;
+    text-align: center;
+    -webkit-app-region: no-drag;
+}
+
+.mode-selector:hover {
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mode-selector:focus {
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
 } 

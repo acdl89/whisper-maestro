@@ -8,8 +8,13 @@ class WhisperMaestroApp {
         this.mediaRecorder = null;
         this.audioChunks = [];
         this.transcribingInterval = null;
+        this.shortcutTriggeredMode = null; // Track mode triggered by shortcuts
+        
         this.initializeEventListeners();
         this.setupIpcListeners();
+        this.loadAvailableModes();
+        
+        console.log('🎨 WhisperMaestro UI initialized');
         
         // Initialize shortcut display after a small delay to ensure API is ready
         setTimeout(() => {
@@ -39,11 +44,11 @@ class WhisperMaestroApp {
             });
         }
 
-        // Cancel recording button
-        const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
-        if (cancelRecordingBtn) {
-            cancelRecordingBtn.addEventListener('click', () => {
-                this.cancelRecording();
+        // Mode selector
+        const modeSelector = document.getElementById('modeSelector');
+        if (modeSelector) {
+            modeSelector.addEventListener('change', (e) => {
+                this.onModeChanged(e.target.value);
             });
         }
 
@@ -66,8 +71,6 @@ class WhisperMaestroApp {
             });
         }
 
-
-
         // Settings button
         const settingsBtn = document.getElementById('settingsBtn');
         if (settingsBtn) {
@@ -83,8 +86,6 @@ class WhisperMaestroApp {
                 this.openHistory();
             });
         }
-
-
 
         // History search
         const historySearch = document.getElementById('historySearch');
@@ -148,6 +149,16 @@ class WhisperMaestroApp {
             this.onTranscribing();
         });
 
+        window.electronAPI.onTransforming((mode) => {
+            console.log('🤖 Renderer: Received transforming event for mode:', mode);
+            this.onTransforming(mode);
+        });
+
+        window.electronAPI.onTransformationError((error) => {
+            console.log('❌ Renderer: Received transformation error:', error);
+            this.onTransformationError(error);
+        });
+
         // Transcription events are now handled by separate transcription window
 
         window.electronAPI.onShortcutRecordingToggled((isRecording) => {
@@ -155,12 +166,15 @@ class WhisperMaestroApp {
             this.onShortcutRecordingToggled(isRecording);
         });
 
+        window.electronAPI.onSetRecordingMode((mode) => {
+            console.log('🎭 Renderer: Setting recording mode to:', mode);
+            this.setRecordingMode(mode);
+        });
+
         window.electronAPI.onStopRendererRecording(() => {
             console.log('🛑 Renderer: Received stop-renderer-recording event');
             this.stopRecording();
         });
-
-
 
         window.electronAPI.onShowSettings(() => {
             console.log('⚙️ Renderer: Received show-settings event from tray menu');
@@ -175,8 +189,9 @@ class WhisperMaestroApp {
         // Listen for settings updates
         if (window.electronAPI.onSettingsUpdated) {
             window.electronAPI.onSettingsUpdated((settings) => {
-                console.log('⚙️ Renderer: Settings updated, refreshing shortcut display');
+                console.log('⚙️ Renderer: Settings updated, refreshing shortcut display and mode dropdown');
                 this.updateShortcutDisplay();
+                this.loadAvailableModes(); // Refresh mode dropdown with updated shortcuts
             });
         }
         
@@ -303,7 +318,6 @@ class WhisperMaestroApp {
                     return;
                 }
                 
-                
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 console.log('🔄 Converted to ArrayBuffer, size:', arrayBuffer.byteLength, 'bytes');
                 
@@ -318,10 +332,25 @@ class WhisperMaestroApp {
                 if (typeof window.electronAPI !== 'undefined') {
                     console.log('🚀 Sending audio to main process for transcription...');
                     console.log('🎵 Using MIME type:', this.mediaRecorder.mimeType);
+                    
+                    // Get selected mode - prioritize shortcut-triggered mode
+                    let selectedMode;
+                    if (this.shortcutTriggeredMode) {
+                        selectedMode = this.shortcutTriggeredMode;
+                        console.log('🎭 Using shortcut-triggered mode:', selectedMode);
+                        // Clear the shortcut-triggered mode after use
+                        this.shortcutTriggeredMode = null;
+                    } else {
+                        const modeSelector = document.getElementById('modeSelector');
+                        selectedMode = modeSelector ? modeSelector.value : 'transcript';
+                        console.log('🎭 Using dropdown-selected mode:', selectedMode);
+                    }
+                    
                     try {
                         const result = await window.electronAPI.transcribeAudio({
                             audioData: uint8Array,
-                            mimeType: this.mediaRecorder.mimeType
+                            mimeType: this.mediaRecorder.mimeType,
+                            mode: selectedMode
                         });
                         console.log('✅ Transcription result received:', result);
                         
@@ -424,8 +453,6 @@ class WhisperMaestroApp {
         }
     }
 
-
-
     onRecordingStarted() {
         console.log('🎤 Renderer: Received recording started event');
         if (!this.isRecording) {
@@ -440,12 +467,23 @@ class WhisperMaestroApp {
     onRecordingCancelled() {
         this.isRecording = false;
         this.updateUI();
-        this.hideTranscribingStatus(); // Hide any active transcribing animation
+        this.hideTranscribingStatus(true); // Skip control restore during notification flow
+        
+        // Show notification - this will handle hiding/restoring controls with proper timing
         this.showNotification('Recording cancelled', 'cancelled');
+        
+        // DO NOT restore controls here - let showNotification handle the complete timing cycle
     }
 
     onTranscribing() {
         console.log('⏳ Renderer: Received transcribing event');
+        
+        // Hide recording controls during transcription
+        const centeredControls = document.querySelector('.centered-controls');
+        if (centeredControls) {
+            centeredControls.style.display = 'none';
+            console.log('🔒 Renderer: Recording controls hidden during transcription');
+        }
         
         // Show transcribing animation
         const transcribingStatus = document.getElementById('transcribingStatus');
@@ -484,7 +522,7 @@ class WhisperMaestroApp {
         this.transcribingInterval = interval;
     }
 
-    hideTranscribingStatus() {
+    hideTranscribingStatus(skipControlRestore = false) {
         const transcribingStatus = document.getElementById('transcribingStatus');
         const progressElement = document.getElementById('transcribingProgress');
         
@@ -498,6 +536,15 @@ class WhisperMaestroApp {
             setTimeout(() => {
                 transcribingStatus.classList.remove('visible');
                 
+                // Only restore controls if not skipping (i.e., not during notification flow)
+                if (!skipControlRestore) {
+                    const centeredControls = document.querySelector('.centered-controls');
+                    if (centeredControls) {
+                        centeredControls.style.display = 'flex';
+                        console.log('🔓 Renderer: Recording controls restored after transcription');
+                    }
+                }
+                
                 // Reset progress after animation
                 setTimeout(() => {
                     if (progressElement) {
@@ -507,32 +554,23 @@ class WhisperMaestroApp {
             }, 500);
         }
         
-        // Clear progress interval
+        // Clear the progress interval
         if (this.transcribingInterval) {
             clearInterval(this.transcribingInterval);
             this.transcribingInterval = null;
         }
     }
 
-
-
-    // Auto-paste functionality moved to main process
-
-
-
     updateUI() {
         const recordBtn = document.getElementById('recordBtn');
         const recordIcon = recordBtn?.querySelector('.record-icon');
-        const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
 
         if (this.isRecording) {
             document.body.classList.add('recording');
             if (recordIcon) recordIcon.textContent = 'stop';
-            if (cancelRecordingBtn) cancelRecordingBtn.style.display = 'flex';
         } else {
             document.body.classList.remove('recording');
             if (recordIcon) recordIcon.textContent = 'mic';
-            if (cancelRecordingBtn) cancelRecordingBtn.style.display = 'none';
         }
         
         // Update shortcut display (this will update both tooltip and badge)
@@ -612,8 +650,6 @@ class WhisperMaestroApp {
         });
     }
 
-
-
     filterHistory(searchTerm) {
         // Implementation for filtering history
         console.log('Filtering history:', searchTerm);
@@ -656,30 +692,34 @@ class WhisperMaestroApp {
     }
 
     showNotification(message, type = 'success') {
-        // Create notification with Material UI design
+        // Create notification with exact transcribing bar aesthetic
         const notification = document.createElement('div');
+        
+        // Hide recording controls during notification (just like during transcription)
+        const centeredControls = document.querySelector('.centered-controls');
+        if (centeredControls) {
+            centeredControls.style.display = 'none';
+            console.log('🔒 Renderer: Recording controls hidden during notification');
+        }
         
         // Set base styles
         notification.className = `notification notification-${type}`;
         
-        // Get appropriate icon and colors
-        let iconName, bgColor, textColor;
+        // Get appropriate icon and colors - softer, more elegant colors
+        let iconName, textColor;
         switch (type) {
             case 'error':
             case 'cancelled':
                 iconName = 'error_outline';
-                bgColor = '#ffebee';
-                textColor = '#c62828';
+                textColor = '#dc2626'; // Refined red
                 break;
             case 'warning':
                 iconName = 'warning';
-                bgColor = '#fff3e0';
-                textColor = '#ef6c00';
+                textColor = '#d97706'; // Refined amber
                 break;
             default: // success
                 iconName = 'check_circle_outline';
-                bgColor = '#e8f5e8';
-                textColor = '#2e7d32';
+                textColor = '#059669'; // Refined green
         }
         
         notification.innerHTML = `
@@ -689,65 +729,82 @@ class WhisperMaestroApp {
             </div>
         `;
         
+        // Match the transcribing bar aesthetic EXACTLY
         notification.style.cssText = `
             position: fixed;
-            top: 16px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(-100%);
-            background: ${bgColor};
-            color: ${textColor};
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 22px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
             z-index: 10000;
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            max-width: 350px;
+            min-width: 200px;
         `;
         
-        // Add notification styles
+        // Enhanced notification styles with exact transcribing bar typography
         const style = document.createElement('style');
         style.textContent = `
             .notification-content {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                padding: 12px 16px;
+                gap: 10px;
+                padding: 10px 18px;
             }
             .notification-icon {
-                font-size: 18px;
-                opacity: 0.8;
+                font-size: 16px;
+                color: ${textColor};
+                opacity: 0.9;
+                flex-shrink: 0;
             }
             .notification-text {
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 500;
-                letter-spacing: 0.25px;
+                color: ${textColor};
+                letter-spacing: 0.3px;
+                line-height: 1.4;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
         `;
         document.head.appendChild(style);
         
         document.body.appendChild(notification);
         
-        // Animate in
+        // Smooth entrance animation
         requestAnimationFrame(() => {
             notification.style.opacity = '1';
             notification.style.transform = 'translateX(-50%) translateY(0)';
         });
         
-        // Auto-remove with animation
+        // Auto-remove with smooth exit animation - optimized timing for responsiveness
         setTimeout(() => {
             notification.style.opacity = '0';
             notification.style.transform = 'translateX(-50%) translateY(-100%)';
             setTimeout(() => {
+                // Clean up notification elements
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
                 if (style.parentNode) {
                     style.parentNode.removeChild(style);
                 }
-            }, 300);
-        }, type === 'cancelled' ? 2000 : 3000);
+                
+                // Quick pause before restoring controls for clean visual flow
+                setTimeout(() => {
+                    const centeredControls = document.querySelector('.centered-controls');
+                    if (centeredControls) {
+                        centeredControls.style.display = 'flex';
+                        console.log('🔓 Renderer: Recording controls restored after notification');
+                    }
+                }, 600); // Reduced from 1200ms - quicker restore
+            }, 400); // Reduced from 600ms - faster fade out
+        }, type === 'cancelled' ? 2000 : 2500); // Much shorter display time: cancelled=2s, others=2.5s
     }
 
     onShortcutRecordingToggled(isRecording) {
@@ -760,6 +817,8 @@ class WhisperMaestroApp {
         
         if (isRecording) {
             console.log('🎹 Renderer: Starting recording via shortcut - will be handled by recording-started event');
+            // Clear shortcut-triggered mode for general recording shortcut
+            this.shortcutTriggeredMode = null;
         } else {
             console.log('🎹 Renderer: Stopping recording via shortcut - will be handled by stop-renderer-recording event');
         }
@@ -845,6 +904,215 @@ class WhisperMaestroApp {
             // Fallback: try to close via window
             window.close();
         }
+    }
+
+    onModeChanged(mode) {
+        console.log('🎭 Mode changed to:', mode);
+        // Mode change handling can be added here if needed
+        // For now, the mode is just used when submitting audio for transcription
+    }
+
+    async onTransforming(mode) {
+        console.log('🤖 Renderer: Starting transformation for mode:', mode);
+        
+        // Hide recording controls during transformation (similar to transcription)
+        const centeredControls = document.querySelector('.centered-controls');
+        if (centeredControls) {
+            centeredControls.style.display = 'none';
+            console.log('🔒 Renderer: Recording controls hidden during transformation');
+        }
+        
+        // Get the readable mode name from mode settings
+        let modeName = mode;
+        try {
+            if (typeof window.electronAPI !== 'undefined' && window.electronAPI.getModeSettings) {
+                const modeSettings = await window.electronAPI.getModeSettings();
+                if (modeSettings.modes[mode]) {
+                    modeName = modeSettings.modes[mode].name;
+                }
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not get mode name for:', mode, error);
+            // Fallback to capitalizing the mode key
+            modeName = mode.charAt(0).toUpperCase() + mode.slice(1);
+        }
+        
+        // Update transcribing status to show transformation
+        const transcribingStatus = document.getElementById('transcribingStatus');
+        const transcribingText = transcribingStatus?.querySelector('.transcribing-text');
+        
+        if (transcribingStatus && transcribingText) {
+            transcribingStatus.classList.add('visible');
+            transcribingText.textContent = `Transforming to ${modeName}...`;
+            
+            // Start a new progress animation for transformation
+            this.startTransformingProgress();
+        }
+    }
+
+    startTransformingProgress() {
+        const progressElement = document.getElementById('transcribingProgress');
+        if (!progressElement) return;
+        
+        // Clear any existing interval
+        if (this.transcribingInterval) {
+            clearInterval(this.transcribingInterval);
+        }
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            // Faster progress for transformation (usually quicker than transcription)
+            if (progress < 50) {
+                progress += Math.random() * 8 + 2; // Fast start
+            } else if (progress < 80) {
+                progress += Math.random() * 5 + 1; // Medium speed
+            } else if (progress < 95) {
+                progress += Math.random() * 2 + 0.5; // Slow near end
+            } else {
+                progress += Math.random() * 0.3; // Very slow at 95%+
+            }
+            
+            // Cap at 95% to avoid reaching 100% before completion
+            progress = Math.min(progress, 95);
+            
+            progressElement.textContent = `${Math.round(progress)}%`;
+        }, 150); // Slightly faster interval for transformation
+        
+        // Store interval to clear it later
+        this.transcribingInterval = interval;
+    }
+
+    onTransformationError(error) {
+        console.error('❌ Renderer: Transformation failed:', error);
+        
+        // Hide the transforming status
+        this.hideTranscribingStatus();
+        
+        // Show error notification
+        this.showNotification(`Transformation failed: ${error}`, 'error');
+    }
+
+    async loadAvailableModes() {
+        console.log('🎭 Loading available modes...');
+        
+        if (typeof window.electronAPI !== 'undefined' && window.electronAPI.getModeSettings) {
+            try {
+                const modeSettings = await window.electronAPI.getModeSettings();
+                console.log('📋 Mode settings loaded:', modeSettings);
+                
+                const modeSelector = document.getElementById('modeSelector');
+                if (modeSelector) {
+                    // Clear existing options
+                    modeSelector.innerHTML = '';
+                    
+                    // Add modes to the dropdown with shortcuts
+                    Object.entries(modeSettings.modes).forEach(([modeKey, modeConfig]) => {
+                        if (modeConfig.enabled) {
+                            const option = document.createElement('option');
+                            option.value = modeKey;
+                            
+                            // Format the option text to include shortcut if available
+                            let optionText = modeConfig.name;
+                            if (modeConfig.shortcut) {
+                                const displayShortcut = this.electronToDisplayShortcut(modeConfig.shortcut);
+                                optionText += ` (${displayShortcut})`;
+                            }
+                            
+                            option.textContent = optionText;
+                            modeSelector.appendChild(option);
+                        }
+                    });
+                    
+                    // Set default to transcript
+                    modeSelector.value = 'transcript';
+                    
+                    console.log('✅ Mode selector populated with available modes and shortcuts');
+                } else {
+                    console.warn('⚠️ Mode selector element not found');
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load available modes:', error);
+                // Fallback to default modes if API fails
+                this.populateDefaultModes();
+            }
+        } else {
+            console.warn('⚠️ Mode settings API not available, using defaults');
+            this.populateDefaultModes();
+        }
+    }
+
+    populateDefaultModes() {
+        const modeSelector = document.getElementById('modeSelector');
+        if (modeSelector) {
+            // Default shortcuts for built-in modes (using Electron format)
+            const defaultShortcuts = {
+                transcript: 'CommandOrControl+Shift+T',
+                email: 'CommandOrControl+Shift+E', 
+                slack: 'CommandOrControl+Shift+S',
+                notes: 'CommandOrControl+Shift+N',
+                tasks: 'CommandOrControl+Shift+A'
+            };
+            
+            // Convert to display format
+            const displayShortcuts = {};
+            Object.entries(defaultShortcuts).forEach(([mode, shortcut]) => {
+                displayShortcuts[mode] = this.electronToDisplayShortcut(shortcut);
+            });
+            
+            modeSelector.innerHTML = `
+                <option value="transcript">Transcript (${displayShortcuts.transcript})</option>
+                <option value="email">Email (${displayShortcuts.email})</option>
+                <option value="slack">Slack (${displayShortcuts.slack})</option>
+                <option value="notes">Meeting Notes (${displayShortcuts.notes})</option>
+                <option value="tasks">Action Items (${displayShortcuts.tasks})</option>
+            `;
+            modeSelector.value = 'transcript';
+            console.log('✅ Default modes populated with shortcuts');
+        }
+    }
+
+    setRecordingMode(mode) {
+        console.log('🎭 Setting recording mode to:', mode);
+        
+        // Store the mode triggered by shortcut
+        this.shortcutTriggeredMode = mode;
+        
+        const modeSelector = document.getElementById('modeSelector');
+        if (modeSelector) {
+            // Check if the mode exists in the dropdown
+            const option = modeSelector.querySelector(`option[value="${mode}"]`);
+            if (option) {
+                modeSelector.value = mode;
+                console.log('✅ Mode selector updated to:', mode);
+                
+                // Trigger change event to ensure any listeners are notified
+                modeSelector.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                console.warn('⚠️ Mode not found in dropdown:', mode);
+                // Reload available modes in case new modes were added
+                this.loadAvailableModes().then(() => {
+                    const updatedOption = modeSelector.querySelector(`option[value="${mode}"]`);
+                    if (updatedOption) {
+                        modeSelector.value = mode;
+                        console.log('✅ Mode selector updated after reload:', mode);
+                        
+                        // Trigger change event
+                        modeSelector.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        console.error('❌ Mode still not found after reload:', mode);
+                    }
+                });
+            }
+        } else {
+            console.warn('⚠️ Mode selector element not found');
+        }
+    }
+
+    // Add method to refresh modes when settings change
+    refreshAvailableModes() {
+        console.log('🔄 Refreshing available modes...');
+        this.loadAvailableModes();
     }
 }
 
