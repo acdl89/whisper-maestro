@@ -86,4 +86,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkMicrophonePermission: () => ipcRenderer.invoke('check-microphone-permission'),
   checkAccessibilityPermission: () => ipcRenderer.invoke('check-accessibility-permission'),
   requestAccessibilityPermission: () => ipcRenderer.invoke('request-accessibility-permission'),
+
+  // Auto-updater methods
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+  onUpdaterEvent: (callback: (event: string, data?: any) => void) => {
+    ipcRenderer.on('updater-event', (ipcEvent, { event, data }) => callback(event, data));
+  },
+
+  // App version
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 }); 

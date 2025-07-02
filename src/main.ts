@@ -1,4 +1,5 @@
-import { app, BrowserWindow, Menu, Tray, ipcMain, globalShortcut, shell, nativeImage } from 'electron';
+import { app, BrowserWindow, Menu, Tray, ipcMain, globalShortcut, shell, nativeImage, screen } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import { TranscriptionService } from './services/transcriptionService';
 import { ModeService } from './services/modeService';
@@ -21,6 +22,7 @@ class WhisperMaestroApp {
   private currentShortcut: string = 'CommandOrControl+,';
   private modeShortcuts: Map<string, string> = new Map(); // mode -> shortcut mapping
   private needsOnboarding = false;
+  private updateDownloaded = false;
 
   constructor() {
     this.transcriptionService = new TranscriptionService();
@@ -66,6 +68,7 @@ class WhisperMaestroApp {
     this.setupTray();
     this.setupGlobalShortcuts();
     this.setupIpcHandlers();
+    this.setupAutoUpdater();
     
     // Show appropriate window based on onboarding status
     if (this.needsOnboarding) {
@@ -413,6 +416,61 @@ class WhisperMaestroApp {
     }
   }
 
+  private setupAutoUpdater() {
+    // Configure auto-updater
+    if (process.env.NODE_ENV === 'development') {
+      // Skip auto-updates in development
+      logger.log('🚧 Auto-updater disabled in development mode');
+      return;
+    }
+
+    logger.log('🔄 Setting up auto-updater...');
+    
+    // Configure auto-updater settings
+    autoUpdater.checkForUpdatesAndNotify();
+    
+    // Auto-updater event handlers
+    autoUpdater.on('checking-for-update', () => {
+      logger.log('🔍 Checking for update...');
+    });
+
+    autoUpdater.on('update-available', (info) => {
+      logger.log('✅ Update available:', info.version);
+      this.notifyRenderer('update-available', info);
+    });
+
+    autoUpdater.on('update-not-available', (info) => {
+      logger.log('ℹ️ Update not available, current version:', info.version);
+    });
+
+    autoUpdater.on('error', (err) => {
+      logger.error('❌ Auto-updater error:', err);
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+      const logMessage = `📥 Download progress: ${Math.round(progressObj.percent)}%`;
+      logger.log(logMessage);
+      this.notifyRenderer('download-progress', progressObj);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      logger.log('✅ Update downloaded:', info.version);
+      this.updateDownloaded = true;
+      this.notifyRenderer('update-downloaded', info);
+    });
+
+    // Check for updates every hour
+    setInterval(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, 60 * 60 * 1000);
+  }
+
+  private notifyRenderer(event: string, data?: any) {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('updater-event', { event, data });
+    }
+  }
+
   private setupIpcHandlers() {
     ipcMain.handle('get-settings', () => {
       return this.settingsManager.getSettings();
@@ -436,6 +494,27 @@ class WhisperMaestroApp {
       }
       
       return result;
+    });
+
+    // Auto-updater IPC handlers
+    ipcMain.handle('check-for-updates', () => {
+      if (process.env.NODE_ENV !== 'development') {
+        autoUpdater.checkForUpdatesAndNotify();
+      }
+      return true;
+    });
+
+    ipcMain.handle('quit-and-install', () => {
+      if (this.updateDownloaded) {
+        autoUpdater.quitAndInstall();
+      }
+      return this.updateDownloaded;
+    });
+
+    // App version handler
+    ipcMain.handle('get-app-version', () => {
+      const packageJson = require('../package.json');
+      return packageJson.version;
     });
 
     ipcMain.handle('save-api-key', async (event, apiKey) => {

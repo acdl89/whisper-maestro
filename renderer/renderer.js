@@ -12,6 +12,7 @@ class WhisperMaestroApp {
         
         this.initializeEventListeners();
         this.setupIpcListeners();
+        this.setupUpdateListeners();
         this.loadAvailableModes();
         
         console.log('🎨 WhisperMaestro UI initialized');
@@ -193,6 +194,104 @@ class WhisperMaestroApp {
                 this.updateShortcutDisplay();
                 this.loadAvailableModes(); // Refresh mode dropdown with updated shortcuts
             });
+        }
+    }
+
+    setupUpdateListeners() {
+        console.log('🔄 Setting up update listeners...');
+        
+        if (window.electronAPI.onUpdaterEvent) {
+            window.electronAPI.onUpdaterEvent((event, data) => {
+                console.log('📦 Update event:', event, data);
+                
+                switch (event) {
+                    case 'update-available':
+                        this.showUpdateNotification('Update available!', `Version ${data.version} is ready to download.`, false);
+                        break;
+                    case 'download-progress':
+                        this.updateDownloadProgress(data.percent);
+                        break;
+                    case 'update-downloaded':
+                        this.showUpdateNotification('Update ready!', `Version ${data.version} has been downloaded. Restart to apply.`, true);
+                        break;
+                    case 'error':
+                        console.error('❌ Update error:', data);
+                        break;
+                }
+            });
+        }
+    }
+
+    showUpdateNotification(title, message, showRestartButton = false) {
+        // Remove any existing update notification
+        const existingNotification = document.getElementById('updateNotification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create update notification
+        const notification = document.createElement('div');
+        notification.id = 'updateNotification';
+        notification.className = 'update-notification';
+        notification.innerHTML = `
+            <div class="update-content">
+                <div class="update-icon">📦</div>
+                <div class="update-text">
+                    <div class="update-title">${title}</div>
+                    <div class="update-message">${message}</div>
+                    <div id="updateProgress" class="update-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+                <div class="update-actions">
+                    ${showRestartButton ? `
+                        <button id="restartButton" class="restart-btn">Restart Now</button>
+                    ` : ''}
+                    <button id="closeUpdateNotification" class="close-btn">×</button>
+                </div>
+            </div>
+        `;
+
+        // Add to body
+        document.body.appendChild(notification);
+
+        // Add event listeners
+        const closeBtn = document.getElementById('closeUpdateNotification');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                notification.remove();
+            });
+        }
+
+        const restartBtn = document.getElementById('restartButton');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                window.electronAPI.quitAndInstall();
+            });
+        }
+
+        // Auto-hide after 10 seconds if not a restart notification
+        if (!showRestartButton) {
+            setTimeout(() => {
+                if (document.getElementById('updateNotification')) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+    }
+
+    updateDownloadProgress(percent) {
+        const progressContainer = document.getElementById('updateProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        if (progressContainer && progressFill && progressText) {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = `${Math.round(percent)}%`;
         }
         
         console.log('✅ All Electron API event listeners set up successfully');

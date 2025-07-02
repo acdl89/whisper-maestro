@@ -10,6 +10,7 @@ class SettingsWindow {
         this.loadSettings();
         this.loadPermissionStatuses();
         this.loadModeSettings();
+        this.loadAppVersion();
     }
 
     initializeEventListeners() {
@@ -481,6 +482,34 @@ class SettingsWindow {
             
             statusElement.textContent = statusText;
             statusElement.className = `status-indicator ${statusClass}`;
+        }
+    }
+
+    async loadAppVersion() {
+        console.log('📦 Loading app version...');
+        
+        if (typeof window.electronAPI !== 'undefined' && window.electronAPI.getAppVersion) {
+            try {
+                const version = await window.electronAPI.getAppVersion();
+                console.log('📋 App version loaded:', version);
+                
+                const versionElement = document.getElementById('appVersion');
+                if (versionElement) {
+                    versionElement.textContent = `v${version}`;
+                }
+            } catch (error) {
+                console.error('❌ Failed to load app version:', error);
+                const versionElement = document.getElementById('appVersion');
+                if (versionElement) {
+                    versionElement.textContent = 'Version unknown';
+                }
+            }
+        } else {
+            console.warn('⚠️ Electron API not available for version check');
+            const versionElement = document.getElementById('appVersion');
+            if (versionElement) {
+                versionElement.textContent = 'Version unavailable';
+            }
         }
     }
 

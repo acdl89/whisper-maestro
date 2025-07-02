@@ -11,7 +11,9 @@
     "dev": "concurrently \"npm run watch\" \"electron .\"",
     "package": "npm run build && electron-builder",
     "dist": "npm run build && electron-builder --mac --publish=never",
-    "dist:mac": "npm run build && electron-builder --mac --publish=never"
+    "dist:mac": "npm run build && electron-builder --mac --publish=never",
+    "release": "npm run build && electron-builder --mac --publish=always",
+    "release:draft": "npm run build && electron-builder --mac --publish=always --config.publish.draft=true"
   },
   "keywords": [
     "macos",
@@ -76,10 +78,11 @@
         }
       ],
       "icon": "assets/dock-icon.icns",
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "identity": null
     },
     "publish": {
       "provider": "github",
