@@ -88,7 +88,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   requestAccessibilityPermission: () => ipcRenderer.invoke('request-accessibility-permission'),
 
   // Auto-updater methods
-  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  checkForUpdates: (options?: { manual?: boolean }) => ipcRenderer.invoke('check-for-updates', options),
   quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
   onUpdaterEvent: (callback: (event: string, data?: any) => void) => {
     ipcRenderer.on('updater-event', (ipcEvent, { event, data }) => callback(event, data));

@@ -374,10 +374,12 @@ class SettingsWindow {
                 
                 const provider = document.getElementById('provider');
                 const model = document.getElementById('model');
+                const chatGptModel = document.getElementById('chatGptModel');
                 const apiKey = document.getElementById('apiKey');
                 
                 if (provider) provider.value = settings.provider || 'openai';
                 if (model) model.value = settings.model || 'whisper-1';
+                if (chatGptModel) chatGptModel.value = settings.chatGptModel || 'gpt-3.5-turbo';
                 if (apiKey) apiKey.value = settings.apiKey || '';
                 
                 // Load shortcut
@@ -744,6 +746,7 @@ class SettingsWindow {
         const settings = {
             provider: formData.get('provider') || 'openai',
             model: formData.get('model') || 'whisper-1',
+            chatGptModel: formData.get('chatGptModel') || 'gpt-3.5-turbo',
             recordingShortcut: recordingShortcut
         };
         

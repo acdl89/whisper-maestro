@@ -113,13 +113,16 @@ export class ModeService {
       // Replace {userName} placeholder in prompt
       const prompt = modeConfig.prompt.replace('{userName}', modeSettings.userName);
       
-      // Get OpenAI API key
+      // Get OpenAI API key and ChatGPT model from settings
       const apiKey = await this.settingsManager.getApiKey();
       if (!apiKey) {
         throw new Error('OpenAI API key not configured');
       }
 
-      logger.log(`🤖 Transforming transcript using ${modeConfig.name} mode...`);
+      const settings = await this.settingsManager.getSettings();
+      const chatGptModel = settings.chatGptModel || 'gpt-3.5-turbo';
+
+      logger.log(`🤖 Transforming transcript using ${modeConfig.name} mode with model ${chatGptModel}...`);
 
       // Call OpenAI API
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -129,7 +132,7 @@ export class ModeService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: chatGptModel,
           messages: [
             {
               role: 'system',

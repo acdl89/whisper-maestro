@@ -5,6 +5,7 @@ import * as crypto from 'crypto';
 interface AppSettings {
   provider: string;
   model: string;
+  chatGptModel: string; // Model for ChatGPT transformations
   recordingShortcut: string;
   theme: 'light' | 'dark' | 'system';
   apiKeyHash?: string; // Encrypted API key
@@ -27,6 +28,7 @@ export class SettingsManager {
       defaults: {
         provider: 'openai',
         model: 'whisper-1',
+        chatGptModel: 'gpt-3.5-turbo',
         recordingShortcut: 'CommandOrControl+,',
         theme: 'system'
       }

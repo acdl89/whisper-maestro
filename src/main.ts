@@ -179,6 +179,13 @@ class WhisperMaestroApp {
             this.showHistory();
           }
         },
+        {
+          label: 'Check for Updates',
+          click: () => {
+            logger.log('Tray menu: Check for Updates clicked');
+            this.checkForUpdatesManually();
+          }
+        },
         { type: 'separator' },
         {
           label: 'Quit',
@@ -417,17 +424,14 @@ class WhisperMaestroApp {
   }
 
   private setupAutoUpdater() {
-    // Configure auto-updater
-    if (process.env.NODE_ENV === 'development') {
-      // Skip auto-updates in development
-      logger.log('🚧 Auto-updater disabled in development mode');
-      return;
-    }
-
     logger.log('🔄 Setting up auto-updater...');
     
-    // Configure auto-updater settings
-    autoUpdater.checkForUpdatesAndNotify();
+    // Configure auto-updater settings - but skip automatic check in development
+    if (process.env.NODE_ENV !== 'development') {
+      autoUpdater.checkForUpdatesAndNotify();
+    } else {
+      logger.log('🚧 Skipping automatic update check in development mode (manual checks still work)');
+    }
     
     // Auto-updater event handlers
     autoUpdater.on('checking-for-update', () => {
@@ -441,6 +445,7 @@ class WhisperMaestroApp {
 
     autoUpdater.on('update-not-available', (info) => {
       logger.log('ℹ️ Update not available, current version:', info.version);
+      this.notifyRenderer('update-not-available', info);
     });
 
     autoUpdater.on('error', (err) => {
@@ -497,11 +502,31 @@ class WhisperMaestroApp {
     });
 
     // Auto-updater IPC handlers
-    ipcMain.handle('check-for-updates', () => {
-      if (process.env.NODE_ENV !== 'development') {
-        autoUpdater.checkForUpdatesAndNotify();
+    ipcMain.handle('check-for-updates', (event, options = {}) => {
+      logger.log('🔄 IPC: Check for updates requested', options);
+      
+      try {
+        // Allow manual checks even in development mode
+        if (options.manual || process.env.NODE_ENV !== 'development') {
+          logger.log('🔍 Initiating update check...');
+          autoUpdater.checkForUpdatesAndNotify();
+          
+          // Notify renderer that check is starting
+          this.notifyRenderer('checking-for-update', options);
+          
+          return true;
+        } else {
+          logger.log('⚠️ Skipping automatic update check in development mode');
+          return false;
+        }
+      } catch (error) {
+        logger.error('❌ Failed to check for updates:', error);
+        this.notifyRenderer('update-error', { 
+          error: 'Failed to check for updates',
+          ...options
+        });
+        return false;
       }
-      return true;
     });
 
     ipcMain.handle('quit-and-install', () => {
@@ -1317,6 +1342,29 @@ class WhisperMaestroApp {
       } else {
         logger.log('📺 No pasteable text field found - transcription copied to clipboard');
       }
+    }
+  }
+
+  private checkForUpdatesManually() {
+    logger.log('🔄 Manual update check requested from tray menu');
+    
+    try {
+      // Use the same IPC handler that's used for programmatic checks
+      // This ensures consistent behavior and logging
+      logger.log('🔍 Forcing manual update check...');
+      autoUpdater.checkForUpdatesAndNotify();
+      
+      // Show notification that we're checking for updates
+      this.notifyRenderer('checking-for-update', { manual: true, source: 'tray-menu' });
+      
+      logger.log('✅ Manual update check initiated from tray menu');
+    } catch (error) {
+      logger.error('❌ Failed to check for updates manually:', error);
+      this.notifyRenderer('update-error', { 
+        error: 'Failed to check for updates', 
+        manual: true,
+        source: 'tray-menu'
+      });
     }
   }
 }

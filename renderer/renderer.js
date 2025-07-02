@@ -205,14 +205,29 @@ class WhisperMaestroApp {
                 console.log('📦 Update event:', event, data);
                 
                 switch (event) {
+                    case 'checking-for-update':
+                        if (data && data.manual) {
+                            this.showUpdateNotification('Checking for updates...', 'Please wait while we check for new versions.', false, true);
+                        }
+                        break;
                     case 'update-available':
                         this.showUpdateNotification('Update available!', `Version ${data.version} is ready to download.`, false);
+                        break;
+                    case 'update-not-available':
+                        if (data && data.manual) {
+                            this.showUpdateNotification('No updates available', 'You are running the latest version.', false);
+                        }
                         break;
                     case 'download-progress':
                         this.updateDownloadProgress(data.percent);
                         break;
                     case 'update-downloaded':
                         this.showUpdateNotification('Update ready!', `Version ${data.version} has been downloaded. Restart to apply.`, true);
+                        break;
+                    case 'update-error':
+                        const errorMsg = data && data.manual ? 'Failed to check for updates. Please try again later.' : 'Update error occurred.';
+                        this.showUpdateNotification('Update Error', errorMsg, false);
+                        console.error('❌ Update error:', data);
                         break;
                     case 'error':
                         console.error('❌ Update error:', data);
@@ -222,7 +237,7 @@ class WhisperMaestroApp {
         }
     }
 
-    showUpdateNotification(title, message, showRestartButton = false) {
+    showUpdateNotification(title, message, showRestartButton = false, isChecking = false) {
         // Remove any existing update notification
         const existingNotification = document.getElementById('updateNotification');
         if (existingNotification) {
@@ -233,9 +248,12 @@ class WhisperMaestroApp {
         const notification = document.createElement('div');
         notification.id = 'updateNotification';
         notification.className = 'update-notification';
+        // Determine icon based on state
+        const icon = isChecking ? '🔄' : (title.includes('Error') ? '❌' : '📦');
+        
         notification.innerHTML = `
             <div class="update-content">
-                <div class="update-icon">📦</div>
+                <div class="update-icon ${isChecking ? 'checking' : ''}">${icon}</div>
                 <div class="update-text">
                     <div class="update-title">${title}</div>
                     <div class="update-message">${message}</div>

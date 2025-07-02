@@ -319,10 +319,22 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="model">Model:</label>
+                            <label for="model">Whisper Model:</label>
                             <select id="model" name="model">
                                 <option value="whisper-1">Whisper-1</option>
                             </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="chatGptModel">ChatGPT Model (for transformations):</label>
+                            <select id="chatGptModel" name="chatGptModel">
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="gpt-4">GPT-4</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <option value="gpt-4o">GPT-4o</option>
+                                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            </select>
+                            <small style="color: #666; font-size: 12px;">This model is used for transforming transcripts into different modes (Email, Slack, etc.)</small>
                         </div>
                         
                         <div class="form-group">
