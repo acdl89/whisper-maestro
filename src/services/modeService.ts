@@ -22,31 +22,31 @@ export class ModeService {
       name: 'Transcript',
       prompt: 'Return the transcript as-is without any modifications.',
       enabled: true,
-      shortcut: 'CommandOrControl+T'
+      shortcut: 'CommandOrControl+Shift+1'
     },
     email: {
       name: 'Email',
       prompt: 'Draft a professional email based on the information below. Remove any subject line from the output. Format it as a complete email body. Sign it on behalf of {userName}.',
       enabled: true,
-      shortcut: 'CommandOrControl+E'
+      shortcut: 'CommandOrControl+Shift+2'
     },
     slack: {
       name: 'Slack',
       prompt: 'Convert the following into a casual, friendly Slack message. Make it conversational and appropriate for team communication. Keep it concise and engaging.',
       enabled: true,
-      shortcut: 'CommandOrControl+S'
+      shortcut: 'CommandOrControl+Shift+3'
     },
     notes: {
       name: 'Meeting Notes',
       prompt: 'Convert the following transcript into structured meeting notes. Organize the content with clear headings, key points, and action items if mentioned.',
       enabled: true,
-      shortcut: 'CommandOrControl+N'
+      shortcut: 'CommandOrControl+Shift+4'
     },
     tasks: {
       name: 'Action Items',
       prompt: 'Extract and format action items from the following transcript. Present them as a clear, numbered list with any mentioned deadlines or responsible parties.',
       enabled: true,
-      shortcut: 'CommandOrControl+A'
+      shortcut: 'CommandOrControl+Shift+5'
     }
   };
 

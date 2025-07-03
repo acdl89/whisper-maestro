@@ -205,11 +205,6 @@ class WhisperMaestroApp {
                 console.log('📦 Update event:', event, data);
                 
                 switch (event) {
-                    case 'checking-for-update':
-                        if (data && data.manual) {
-                            this.showUpdateNotification('Checking for updates...', 'Please wait while we check for new versions.', false, true);
-                        }
-                        break;
                     case 'update-available':
                         this.showUpdateNotification('Update available!', `Version ${data.version} is ready to download.`, false);
                         break;
@@ -1164,11 +1159,11 @@ class WhisperMaestroApp {
         if (modeSelector) {
             // Default shortcuts for built-in modes (using Electron format)
             const defaultShortcuts = {
-                transcript: 'CommandOrControl+Shift+T',
-                email: 'CommandOrControl+Shift+E', 
-                slack: 'CommandOrControl+Shift+S',
-                notes: 'CommandOrControl+Shift+N',
-                tasks: 'CommandOrControl+Shift+A'
+                transcript: 'CommandOrControl+Shift+1',
+                email: 'CommandOrControl+Shift+2', 
+                slack: 'CommandOrControl+Shift+3',
+                notes: 'CommandOrControl+Shift+4',
+                tasks: 'CommandOrControl+Shift+5'
             };
             
             // Convert to display format

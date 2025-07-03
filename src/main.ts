@@ -12,6 +12,7 @@ class WhisperMaestroApp {
   private settingsWindow: BrowserWindow | null = null;
   private historyWindow: BrowserWindow | null = null;
   private onboardingWindow: BrowserWindow | null = null;
+  private updateWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
   private transcriptionService: TranscriptionService;
   private modeService: ModeService;
@@ -426,6 +427,15 @@ class WhisperMaestroApp {
   private setupAutoUpdater() {
     logger.log('🔄 Setting up auto-updater...');
     
+    // Configure auto-updater for private repository access
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'acdl89',
+      repo: 'whisper-maestro',
+      private: true,
+      token: process.env.GH_TOKEN // You'll need to set this environment variable
+    });
+    
     // Configure auto-updater settings - but skip automatic check in development
     if (process.env.NODE_ENV !== 'development') {
       autoUpdater.checkForUpdatesAndNotify();
@@ -436,32 +446,36 @@ class WhisperMaestroApp {
     // Auto-updater event handlers
     autoUpdater.on('checking-for-update', () => {
       logger.log('🔍 Checking for update...');
+      this.notifyUpdateWindow('checking-for-update', { manual: true });
     });
 
     autoUpdater.on('update-available', (info) => {
       logger.log('✅ Update available:', info.version);
-      this.notifyRenderer('update-available', info);
+      this.showUpdateWindow(info);
     });
 
     autoUpdater.on('update-not-available', (info) => {
       logger.log('ℹ️ Update not available, current version:', info.version);
+      // Notify both the update window and main window
+      this.notifyUpdateWindow('update-not-available', info);
       this.notifyRenderer('update-not-available', info);
     });
 
     autoUpdater.on('error', (err) => {
       logger.error('❌ Auto-updater error:', err);
+      this.notifyRenderer('update-error', { error: err.message });
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
       const logMessage = `📥 Download progress: ${Math.round(progressObj.percent)}%`;
       logger.log(logMessage);
-      this.notifyRenderer('download-progress', progressObj);
+      this.notifyUpdateWindow('download-progress', progressObj);
     });
 
     autoUpdater.on('update-downloaded', (info) => {
       logger.log('✅ Update downloaded:', info.version);
       this.updateDownloaded = true;
-      this.notifyRenderer('update-downloaded', info);
+      this.notifyUpdateWindow('update-downloaded', info);
     });
 
     // Check for updates every hour
@@ -473,6 +487,12 @@ class WhisperMaestroApp {
   private notifyRenderer(event: string, data?: any) {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send('updater-event', { event, data });
+    }
+  }
+
+  private notifyUpdateWindow(event: string, data?: any) {
+    if (this.updateWindow && !this.updateWindow.isDestroyed()) {
+      this.updateWindow.webContents.send('updater-event', { event, data });
     }
   }
 
@@ -530,10 +550,26 @@ class WhisperMaestroApp {
     });
 
     ipcMain.handle('quit-and-install', () => {
+      logger.log('🔄 Quit and install requested, updateDownloaded:', this.updateDownloaded);
       if (this.updateDownloaded) {
-        autoUpdater.quitAndInstall();
+        logger.log('✅ Starting quit and install process...');
+        try {
+          autoUpdater.quitAndInstall();
+          logger.log('✅ quitAndInstall() called successfully');
+        } catch (error) {
+          logger.error('❌ Error in quitAndInstall():', error);
+        }
+      } else {
+        logger.log('⚠️ No update downloaded, cannot quit and install');
       }
       return this.updateDownloaded;
+    });
+
+    ipcMain.on('close-window', (event) => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      if (window && !window.isDestroyed()) {
+        window.close();
+      }
     });
 
     // App version handler
@@ -1345,16 +1381,70 @@ class WhisperMaestroApp {
     }
   }
 
+  private showUpdateWindow(updateInfo?: any) {
+    logger.log('🔄 Showing update window', updateInfo ? `for version: ${updateInfo.version}` : 'for manual check');
+    
+    // Close existing update window if open
+    if (this.updateWindow && !this.updateWindow.isDestroyed()) {
+      this.updateWindow.close();
+    }
+    
+    // Create new update window
+    this.updateWindow = new BrowserWindow({
+      width: 600,
+      height: 700,
+      resizable: false,
+      maximizable: false,
+      minimizable: false,
+      fullscreenable: false,
+      show: false,
+      titleBarStyle: 'hiddenInset',
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.js')
+      }
+    });
+    
+    // Load update window HTML
+    this.updateWindow.loadFile(path.join(__dirname, '../renderer/update.html'));
+    
+    // Show window when ready
+    this.updateWindow.once('ready-to-show', () => {
+      this.updateWindow?.show();
+      this.updateWindow?.focus();
+    });
+    
+    // Handle window close
+    this.updateWindow.on('closed', () => {
+      this.updateWindow = null;
+    });
+    
+    // Send update info to renderer
+    this.updateWindow.webContents.on('did-finish-load', () => {
+      // If we have update info, send it immediately
+      if (updateInfo) {
+        this.updateWindow?.webContents.send('updater-event', { 
+          event: 'update-available', 
+          data: updateInfo 
+        });
+      }
+    });
+  }
+
   private checkForUpdatesManually() {
     logger.log('🔄 Manual update check requested from tray menu');
     
     try {
+      // Show the update window immediately for manual checks
+      this.showUpdateWindow();
+      
       // Use the same IPC handler that's used for programmatic checks
       // This ensures consistent behavior and logging
       logger.log('🔍 Forcing manual update check...');
       autoUpdater.checkForUpdatesAndNotify();
       
-      // Show notification that we're checking for updates
+      // Show notification that we're checking for updates (this will be handled by the update window if an update is found)
       this.notifyRenderer('checking-for-update', { manual: true, source: 'tray-menu' });
       
       logger.log('✅ Manual update check initiated from tray menu');

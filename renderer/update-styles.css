@@ -1,0 +1,395 @@
+/* Update Window Styles - Native macOS Design */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #1a1a1a;
+    color: #1d1d1f;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.update-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 32px;
+    background: #232323;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Header Section */
+.update-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e5e7;
+}
+
+.app-icon { display: none; }
+.app-icon img { display: none; }
+
+.update-info {
+    flex: 1;
+}
+
+.app-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.update-available {
+    font-size: 14px;
+    color: #007AFF;
+    font-weight: 500;
+}
+
+/* Version Info */
+.version-info {
+    margin-bottom: 24px;
+}
+
+.version-comparison {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #6e6e73;
+}
+
+.current-version, .new-version {
+    padding: 6px 12px;
+    background: #f5f5f7;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.arrow {
+    color: #007AFF;
+    font-weight: 600;
+}
+
+/* Release Notes */
+.release-notes {
+    margin-bottom: 24px;
+    color: #fff;
+}
+
+.release-notes h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.notes-content {
+    background: #f5f5f7;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #fff;
+}
+
+.notes-content ul {
+    list-style: none;
+    padding: 0;
+    color: #fff;
+}
+
+.notes-content li {
+    margin-bottom: 8px;
+    padding-left: 0;
+}
+
+.notes-content li:last-child {
+    margin-bottom: 0;
+}
+
+/* Checking for Updates */
+.checking-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f5f5f7;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.checking-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.checking-spinner {
+    width: 32px;
+    height: 32px;
+}
+
+.checking-spinner .circular {
+    animation: rotate 2s linear infinite;
+    width: 32px;
+    height: 32px;
+}
+
+.checking-spinner .path {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+.checking-text {
+    font-size: 14px;
+    color: #6e6e73;
+    font-weight: 500;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+/* Download Progress */
+.download-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f5f5f7;
+    border-radius: 8px;
+}
+
+.progress-container {
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e5e5e7;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #007AFF;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6e6e73;
+    font-weight: 500;
+}
+
+/* Action Buttons */
+.update-actions {
+    margin-bottom: 20px;
+}
+
+.primary-actions {
+    margin-bottom: 12px;
+}
+
+.secondary-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #007AFF;
+    color: white;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-primary:hover {
+    background: #0056CC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #f5f5f7;
+    color: #1d1d1f;
+    border: 1px solid #e5e5e7;
+}
+
+.btn-secondary:hover {
+    background: #e5e5e7;
+    border-color: #d1d1d6;
+}
+
+.btn-text {
+    background: transparent;
+    color: #007AFF;
+    padding: 8px 12px;
+}
+
+.btn-text:hover {
+    background: rgba(0, 122, 255, 0.1);
+    border-radius: 6px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn .material-icons {
+    font-size: 18px;
+}
+
+/* Footer */
+.update-footer {
+    text-align: center;
+}
+
+.update-note {
+    font-size: 12px;
+    color: #6e6e73;
+    line-height: 1.4;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.update-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .update-container {
+        margin: 16px;
+        padding: 24px;
+    }
+    
+    .update-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .secondary-actions {
+        flex-direction: column;
+    }
+    
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1d1d1f;
+        color: #f5f5f7;
+    }
+    
+    .update-container {
+        background: #2c2c2e;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .update-header {
+        border-bottom-color: #3a3a3c;
+    }
+    
+    .current-version, .new-version {
+        background: #3a3a3c;
+        color: #f5f5f7;
+    }
+    
+    .notes-content {
+        background: #3a3a3c;
+    }
+    
+    .download-section {
+        background: #3a3a3c;
+    }
+    
+    .progress-bar {
+        background: #3a3a3c;
+    }
+    
+    .btn-secondary {
+        background: #3a3a3c;
+        color: #f5f5f7;
+        border-color: #48484a;
+    }
+    
+    .btn-secondary:hover {
+        background: #48484a;
+        border-color: #5a5a5c;
+    }
+} 
