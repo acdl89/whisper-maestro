@@ -10,7 +10,6 @@ import { logger } from './utils/logger';
 class WhisperMaestroApp {
   private mainWindow: BrowserWindow | null = null;
   private settingsWindow: BrowserWindow | null = null;
-  private historyWindow: BrowserWindow | null = null;
   private onboardingWindow: BrowserWindow | null = null;
   private updateWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
@@ -171,13 +170,6 @@ class WhisperMaestroApp {
           click: () => {
             logger.log('Tray menu: Settings clicked');
             this.showSettings();
-          }
-        },
-        {
-          label: 'History',
-          click: () => {
-            logger.log('Tray menu: History clicked');
-            this.showHistory();
           }
         },
         {
@@ -664,10 +656,10 @@ class WhisperMaestroApp {
           let finalResult = transcription;
           
           // Check if mode transformation is needed
-          const selectedMode = audioRequest.mode || 'transcript';
+          const selectedMode = audioRequest.mode || 'none';
           logger.log('🎭 Selected mode:', selectedMode);
           
-          if (selectedMode !== 'transcript') {
+          if (selectedMode !== 'none') {
             // Show transforming status
             if (this.mainWindow) {
               logger.log('📡 Sending transforming status to renderer');
@@ -700,13 +692,19 @@ class WhisperMaestroApp {
               logger.log('🔄 Falling back to original transcript');
               finalResult = {
                 ...transcription,
-                mode: 'transcript'
+                mode: 'none'
               };
             }
           }
           
           logger.log('💾 Saving result to history...');
           await this.historyManager.addTranscription(finalResult);
+          
+          // Save the last used mode for future sessions
+          if (selectedMode !== 'none') {
+            logger.log('💾 Saving last used mode:', selectedMode);
+            await this.settingsManager.setLastUsedMode(selectedMode);
+          }
           
           logger.log('📋 Copying result to clipboard...');
           require('electron').clipboard.writeText(finalResult.text);
@@ -770,10 +768,7 @@ class WhisperMaestroApp {
       this.showSettings();
     });
 
-    ipcMain.on('open-history', () => {
-      logger.log('📋 Main: Received open history request');
-      this.showHistory();
-    });
+
 
     // Onboarding handlers
     ipcMain.handle('complete-onboarding', () => {
@@ -828,6 +823,15 @@ class WhisperMaestroApp {
       } catch (error) {
         logger.error('❌ Failed to get available modes:', error);
         throw error;
+      }
+    });
+
+    ipcMain.handle('get-last-used-mode', async () => {
+      try {
+        return await this.settingsManager.getLastUsedMode();
+      } catch (error) {
+        logger.error('❌ Failed to get last used mode:', error);
+        return 'none';
       }
     });
 
@@ -900,6 +904,75 @@ class WhisperMaestroApp {
       } catch (error) {
         logger.error('❌ Failed to request accessibility permission:', error);
         return false;
+      }
+    });
+
+    // Quick toggle mode handler
+    ipcMain.handle('set-quick-toggle-mode', async (event, mode: string) => {
+      logger.log(`🎭 Setting quick toggle mode to: ${mode}`);
+      
+      // Set the mode in the main window if it exists
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send('set-recording-mode', mode);
+      }
+      
+      return true;
+    });
+
+    // Personalization handlers
+    ipcMain.handle('get-personalization', async () => {
+      try {
+        return await this.settingsManager.getPersonalization();
+      } catch (error) {
+        logger.error('❌ Failed to get personalization:', error);
+        return [];
+      }
+    });
+
+    ipcMain.handle('save-personalization', async (event, entries: string[]) => {
+      try {
+        await this.settingsManager.savePersonalization(entries);
+        logger.log('✅ Personalization saved successfully');
+        return true;
+      } catch (error) {
+        logger.error('❌ Failed to save personalization:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('add-personalization-entry', async (event, entry: string) => {
+      try {
+        return await this.settingsManager.addPersonalizationEntry(entry);
+      } catch (error) {
+        logger.error('❌ Failed to add personalization entry:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('remove-personalization-entry', async (event, index: number) => {
+      try {
+        return await this.settingsManager.removePersonalizationEntry(index);
+      } catch (error) {
+        logger.error('❌ Failed to remove personalization entry:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('update-personalization-entry', async (event, index: number, newEntry: string) => {
+      try {
+        return await this.settingsManager.updatePersonalizationEntry(index, newEntry);
+      } catch (error) {
+        logger.error('❌ Failed to update personalization entry:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('reorder-personalization-entries', async (event, entries: string[]) => {
+      try {
+        return await this.settingsManager.reorderPersonalizationEntries(entries);
+      } catch (error) {
+        logger.error('❌ Failed to reorder personalization entries:', error);
+        throw error;
       }
     });
   }
@@ -1092,8 +1165,10 @@ class WhisperMaestroApp {
 
     logger.log('Creating new settings window');
     this.settingsWindow = new BrowserWindow({
-      width: 700,
-      height: 600,
+      width: 1200,
+      height: 800,
+      minWidth: 1000,
+      minHeight: 600,
       show: false,
       icon: path.join(__dirname, '../assets/dock-icon.icns'), // Add custom icon
       webPreferences: {
@@ -1134,59 +1209,7 @@ class WhisperMaestroApp {
     });
   }
 
-  private showHistory() {
-    logger.log('📋 showHistory called - opening history window');
-    
-    if (this.historyWindow && !this.historyWindow.isDestroyed()) {
-      logger.log('Showing existing history window');
-      this.historyWindow.show();
-      this.historyWindow.focus();
-      return;
-    }
 
-    logger.log('Creating new history window');
-    this.historyWindow = new BrowserWindow({
-      width: 900,
-      height: 700,
-      show: false,
-      icon: path.join(__dirname, '../assets/dock-icon.icns'), // Add custom icon
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        preload: path.join(__dirname, 'preload.js')
-      },
-      titleBarStyle: 'default',
-      center: true,
-      resizable: true,
-      minimizable: true,
-      maximizable: true,
-      movable: true,
-      frame: true,
-      title: 'WhisperMaestro History'
-    });
-
-    const htmlPath = path.join(__dirname, '../renderer/history.html');
-    logger.log('Loading History HTML from:', htmlPath);
-    
-    this.historyWindow.loadFile(htmlPath).then(() => {
-      logger.log('History HTML file loaded successfully');
-    }).catch((error) => {
-      logger.error('Failed to load History HTML file:', error);
-    });
-
-    this.historyWindow.once('ready-to-show', () => {
-      logger.log('History window ready to show');
-      if (this.historyWindow && !this.historyWindow.isDestroyed()) {
-        this.historyWindow.show();
-        this.historyWindow.focus();
-      }
-    });
-
-    this.historyWindow.on('closed', () => {
-      logger.log('History window closed');
-      this.historyWindow = null;
-    });
-  }
 
   private showOnboarding() {
     logger.log('🎯 showOnboarding called - opening onboarding window');

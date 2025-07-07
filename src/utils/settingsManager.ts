@@ -9,6 +9,7 @@ interface AppSettings {
   recordingShortcut: string;
   theme: 'light' | 'dark' | 'system';
   apiKeyHash?: string; // Encrypted API key
+  personalization?: string[]; // Personalization entries
   [key: string]: any;
 }
 
@@ -103,5 +104,65 @@ export class SettingsManager {
 
   async deleteApiKey(): Promise<void> {
     this.store.delete('apiKeyHash');
+  }
+
+  async getPersonalization(): Promise<string[]> {
+    return this.store.get('personalization', []);
+  }
+
+  async savePersonalization(entries: string[]): Promise<void> {
+    // Filter out empty entries and trim whitespace
+    const cleanEntries = entries
+      .map(entry => entry.trim())
+      .filter(entry => entry.length > 0);
+    
+    this.store.set('personalization', cleanEntries);
+  }
+
+  async addPersonalizationEntry(entry: string): Promise<string[]> {
+    const current = await this.getPersonalization();
+    const trimmed = entry.trim();
+    
+    if (trimmed && !current.includes(trimmed)) {
+      current.push(trimmed);
+      await this.savePersonalization(current);
+    }
+    
+    return current;
+  }
+
+  async removePersonalizationEntry(index: number): Promise<string[]> {
+    const current = await this.getPersonalization();
+    if (index >= 0 && index < current.length) {
+      current.splice(index, 1);
+      await this.savePersonalization(current);
+    }
+    
+    return current;
+  }
+
+  async updatePersonalizationEntry(index: number, newEntry: string): Promise<string[]> {
+    const current = await this.getPersonalization();
+    const trimmed = newEntry.trim();
+    
+    if (index >= 0 && index < current.length && trimmed) {
+      current[index] = trimmed;
+      await this.savePersonalization(current);
+    }
+    
+    return current;
+  }
+
+  async reorderPersonalizationEntries(entries: string[]): Promise<string[]> {
+    await this.savePersonalization(entries);
+    return entries;
+  }
+
+  async getLastUsedMode(): Promise<string> {
+    return this.store.get('lastUsedMode', 'none');
+  }
+
+  async setLastUsedMode(mode: string): Promise<void> {
+    this.store.set('lastUsedMode', mode);
   }
 } 

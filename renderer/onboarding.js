@@ -44,13 +44,29 @@ class OnboardingApp {
             this.showStep(3);
         });
 
-        // Step 3: Completion and features
+        // Step 3: Modes Introduction
         document.getElementById('backToStep2Btn').addEventListener('click', () => {
             this.showStep(2);
         });
 
+        document.getElementById('continueToStep4Btn').addEventListener('click', () => {
+            this.showStep(4);
+        });
+
+        // Step 4: Completion and features
+        document.getElementById('backToStep3Btn').addEventListener('click', () => {
+            this.showStep(3);
+        });
+
         document.getElementById('getStartedBtn').addEventListener('click', () => {
             this.completeOnboarding();
+        });
+
+        // Mode selection in step 3
+        document.querySelectorAll('.mode-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.toggleModeSelection(item);
+            });
         });
 
         // Shortcut customization
@@ -256,6 +272,7 @@ class OnboardingApp {
         document.getElementById('step1').style.display = 'none';
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'none';
+        document.getElementById('step4').style.display = 'none';
 
         // Show the requested step
         document.getElementById(`step${stepNumber}`).style.display = 'flex';
@@ -266,8 +283,13 @@ class OnboardingApp {
             this.setupPermissionButtons();
         }
 
-        // If showing step 3, load current shortcut
+        // If showing step 3, initialize mode selections
         if (stepNumber === 3) {
+            this.initializeModeSelections();
+        }
+
+        // If showing step 4, load current shortcut
+        if (stepNumber === 4) {
             this.loadCurrentShortcut();
         }
     }
@@ -705,6 +727,62 @@ class OnboardingApp {
             if (saveBtn) {
                 saveBtn.disabled = false;
             }
+        }
+    }
+
+    toggleModeSelection(item) {
+        const modeKey = item.getAttribute('data-mode');
+        console.log('Mode selected:', modeKey);
+        
+        // Toggle selection state
+        const isSelected = item.classList.contains('selected');
+        
+        if (isSelected) {
+            item.classList.remove('selected');
+        } else {
+            item.classList.add('selected');
+        }
+        
+        // Update the mode settings
+        this.updateModeSelection(modeKey, !isSelected);
+    }
+
+    async updateModeSelection(modeKey, enabled) {
+        try {
+            if (typeof window.electronAPI !== 'undefined') {
+                const modeSettings = await window.electronAPI.getModeSettings();
+                
+                if (modeSettings.modes && modeSettings.modes[modeKey]) {
+                    modeSettings.modes[modeKey].enabled = enabled;
+                    await window.electronAPI.saveModeSettings(modeSettings);
+                    console.log(`✅ Mode ${modeKey} ${enabled ? 'enabled' : 'disabled'}`);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to update mode selection:', error);
+        }
+    }
+
+    async initializeModeSelections() {
+        try {
+            if (typeof window.electronAPI !== 'undefined') {
+                const modeSettings = await window.electronAPI.getModeSettings();
+                
+                if (modeSettings.modes) {
+                    Object.entries(modeSettings.modes).forEach(([modeKey, modeConfig]) => {
+                        const modeItem = document.querySelector(`[data-mode="${modeKey}"]`);
+                        if (modeItem) {
+                            if (modeConfig.enabled) {
+                                modeItem.classList.add('selected');
+                            } else {
+                                modeItem.classList.remove('selected');
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to initialize mode selections:', error);
         }
     }
 }

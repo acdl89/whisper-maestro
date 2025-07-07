@@ -18,35 +18,41 @@ export interface ModeSettings {
 export class ModeService {
   private settingsManager: SettingsManager;
   private defaultModes: { [key: string]: ModeConfig } = {
-    transcript: {
-      name: 'Transcript',
+    none: {
+      name: '📝 Raw Transcript',
       prompt: 'Return the transcript as-is without any modifications.',
       enabled: true,
       shortcut: 'CommandOrControl+Shift+1'
     },
-    email: {
-      name: 'Email',
-      prompt: 'Draft a professional email based on the information below. Remove any subject line from the output. Format it as a complete email body. Sign it on behalf of {userName}.',
+    enhanced: {
+      name: '✨ Enhanced Transcript',
+      prompt: 'Clean up this transcript by removing filler words (um, uh, like, you know), fixing contradictions and corrections (e.g., "tell john wait it\'s jack" becomes "tell jack"), improving grammar and clarity while maintaining the original meaning and tone.',
       enabled: true,
       shortcut: 'CommandOrControl+Shift+2'
     },
-    slack: {
-      name: 'Slack',
-      prompt: 'Convert the following into a casual, friendly Slack message. Make it conversational and appropriate for team communication. Keep it concise and engaging.',
+    email: {
+      name: '📧 Email',
+      prompt: 'Draft a professional email based on the information below. Remove any subject line from the output. Format it as a complete email body. Sign it on behalf of {userName}.',
       enabled: true,
       shortcut: 'CommandOrControl+Shift+3'
     },
-    notes: {
-      name: 'Meeting Notes',
-      prompt: 'Convert the following transcript into structured meeting notes. Organize the content with clear headings, key points, and action items if mentioned.',
+    slack: {
+      name: '💬 Slack',
+      prompt: 'Convert the following into a casual, friendly Slack message. Make it conversational and appropriate for team communication. Keep it concise and engaging.',
       enabled: true,
       shortcut: 'CommandOrControl+Shift+4'
     },
-    tasks: {
-      name: 'Action Items',
-      prompt: 'Extract and format action items from the following transcript. Present them as a clear, numbered list with any mentioned deadlines or responsible parties.',
+    whatsapp: {
+      name: '📱 WhatsApp',
+      prompt: 'Convert the following into a casual WhatsApp message. Make it friendly, conversational, and suitable for personal or informal business communication. Keep it concise and use emojis sparingly if appropriate.',
       enabled: true,
       shortcut: 'CommandOrControl+Shift+5'
+    },
+    linkedin: {
+      name: '💼 LinkedIn',
+      prompt: 'Convert the following into a professional LinkedIn post or message. Make it engaging, professional, and suitable for business networking. Include relevant insights and maintain a thought-leadership tone.',
+      enabled: true,
+      shortcut: 'CommandOrControl+Shift+6'
     }
   };
 
@@ -98,8 +104,8 @@ export class ModeService {
 
   async transformTranscript(transcript: string, mode: string): Promise<string> {
     try {
-      // If transcript mode, return as-is
-      if (mode === 'transcript') {
+      // If none mode, return as-is
+      if (mode === 'none') {
         return transcript;
       }
 
@@ -109,6 +115,9 @@ export class ModeService {
       if (!modeConfig || !modeConfig.enabled) {
         throw new Error(`Mode "${mode}" is not available or enabled`);
       }
+
+      // Get personalization entries
+      const personalizationEntries = await this.settingsManager.getPersonalization();
 
       // Replace {userName} placeholder in prompt
       const prompt = modeConfig.prompt.replace('{userName}', modeSettings.userName);
@@ -124,6 +133,31 @@ export class ModeService {
 
       logger.log(`🤖 Transforming transcript using ${modeConfig.name} mode with model ${chatGptModel}...`);
 
+      // Build messages array with personalization injection
+      const messages = [];
+
+      // Add personalization system message if entries exist
+      if (personalizationEntries.length > 0) {
+        const personalizationMessage = personalizationEntries.join('\n');
+        messages.push({
+          role: 'system',
+          content: personalizationMessage
+        });
+        logger.log(`🎭 Injecting ${personalizationEntries.length} personalization entries`);
+      }
+
+      // Add mode-specific system message
+      messages.push({
+        role: 'system',
+        content: prompt
+      });
+
+      // Add user transcript
+      messages.push({
+        role: 'user',
+        content: transcript
+      });
+
       // Call OpenAI API
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -133,16 +167,7 @@ export class ModeService {
         },
         body: JSON.stringify({
           model: chatGptModel,
-          messages: [
-            {
-              role: 'system',
-              content: prompt
-            },
-            {
-              role: 'user',
-              content: transcript
-            }
-          ],
+          messages: messages,
           temperature: 0.7,
           max_tokens: 1000
         })

@@ -547,6 +547,95 @@
             margin-top: 30px;
             flex-shrink: 0;
         }
+
+        /* Step 3: Modes Introduction */
+        .modes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .mode-item {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            padding: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .mode-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .mode-item.selected {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .mode-item.selected .mode-icon {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .mode-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #22c55e;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .mode-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-info {
+            flex: 1;
+        }
+
+        .mode-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 4px 0;
+        }
+
+        .mode-info p {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+
+
+        .modes-help {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 13px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -668,8 +757,104 @@
             </div>
         </div>
 
-        <!-- Step 3: How It Works & Completion -->
+        <!-- Step 3: Modes Introduction -->
         <div class="onboarding-container" id="step3" style="display: none;">
+            <div class="welcome-header">
+                <div class="app-logo">
+                    <span class="material-icons">auto_fix_high</span>
+                </div>
+                <h1 class="welcome-title">Transform Your Transcriptions</h1>
+                <p class="welcome-subtitle">
+                    WhisperMaestro can automatically format your transcriptions<br>
+                    for different contexts and platforms.
+                </p>
+            </div>
+
+            <div class="setup-step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Choose Your Modes</div>
+                </div>
+                <p class="step-description">
+                    Select which transformation modes you'd like to use. Each mode has its own keyboard shortcut for quick access.
+                </p>
+                
+                <div class="modes-grid">
+                    <div class="mode-item" data-mode="none">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>📝 Raw Transcript</h3>
+                                <p>Transcription as-is without modifications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-item" data-mode="enhanced">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>✨ Enhanced Transcript</h3>
+                                <p>Clean up filler words and improve clarity</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-item" data-mode="email">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>📧 Email</h3>
+                                <p>Format as professional email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-item" data-mode="slack">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>💬 Slack</h3>
+                                <p>Casual team communication style</p>
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-item" data-mode="whatsapp">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>📱 WhatsApp</h3>
+                                <p>Friendly, casual messaging style</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-item" data-mode="linkedin">
+                        <div class="mode-header">
+                            <div class="mode-info">
+                                <h3>💼 LinkedIn</h3>
+                                <p>Professional networking content</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modes-help">
+                    <p><strong>💡 How it works:</strong> Click on modes to enable/disable them. Enabled modes will be available during recording. Each mode transforms your transcription differently - from raw text to formatted content for emails, Slack, and more.</p>
+                    <p><strong>⌨️ Quick access:</strong> Each mode has its own keyboard shortcut for instant access during recording. You can customize these later in Settings.</p>
+                </div>
+            </div>
+
+            <div class="onboarding-actions">
+                <button type="button" class="onboarding-btn btn-secondary" id="backToStep2Btn">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </button>
+                <button type="button" class="onboarding-btn btn-primary" id="continueToStep4Btn">
+                    <span class="material-icons">arrow_forward</span>
+                    Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: How It Works & Completion -->
+        <div class="onboarding-container" id="step4" style="display: none;">
             <div class="welcome-header">
                 <div class="app-logo">
                     <span class="material-icons">tips_and_updates</span>
@@ -683,11 +868,11 @@
 
             <div class="setup-step">
                 <div class="step-header">
-                    <div class="step-number">3</div>
+                    <div class="step-number">4</div>
                     <div class="step-title">You're All Set!</div>
                 </div>
                 
-                <div class="how-it-works-grid">
+                <div class="how-it-works-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
                     <div class="feature-item">
                         <div class="feature-icon">
                             <span class="material-icons">keyboard</span>
@@ -714,6 +899,16 @@
 
                     <div class="feature-item">
                         <div class="feature-icon">
+                            <span class="material-icons">transform</span>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Transformation Modes</h3>
+                            <p>Format transcriptions for emails, Slack, LinkedIn, and more</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
                             <span class="material-icons">content_copy</span>
                         </div>
                         <div class="feature-content">
@@ -735,7 +930,7 @@
             </div>
 
             <div class="onboarding-actions">
-                <button type="button" class="onboarding-btn btn-secondary" id="backToStep2Btn">
+                <button type="button" class="onboarding-btn btn-secondary" id="backToStep3Btn">
                     <span class="material-icons">arrow_back</span>
                     Back
                 </button>

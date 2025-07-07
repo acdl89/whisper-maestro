@@ -20,7 +20,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Mode management methods
   getModeSettings: () => ipcRenderer.invoke('get-mode-settings'),
   saveModeSettings: (modeSettings: any) => ipcRenderer.invoke('save-mode-settings', modeSettings),
+  getLastUsedMode: () => ipcRenderer.invoke('get-last-used-mode'),
   getAvailableModes: () => ipcRenderer.invoke('get-available-modes'),
+  setQuickToggleMode: (mode: string) => ipcRenderer.invoke('set-quick-toggle-mode', mode),
+  
+  // Personalization methods
+  getPersonalization: () => ipcRenderer.invoke('get-personalization'),
+  savePersonalization: (entries: string[]) => ipcRenderer.invoke('save-personalization', entries),
+  addPersonalizationEntry: (entry: string) => ipcRenderer.invoke('add-personalization-entry', entry),
+  removePersonalizationEntry: (index: number) => ipcRenderer.invoke('remove-personalization-entry', index),
+  updatePersonalizationEntry: (index: number, newEntry: string) => ipcRenderer.invoke('update-personalization-entry', index, newEntry),
+  reorderPersonalizationEntries: (entries: string[]) => ipcRenderer.invoke('reorder-personalization-entries', entries),
   
   onRecordingStarted: (callback: () => void) => {
     ipcRenderer.on('recording-started', () => callback());

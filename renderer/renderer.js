@@ -80,28 +80,9 @@ class WhisperMaestroApp {
             });
         }
 
-        // History button
-        const historyBtn = document.getElementById('historyBtn');
-        if (historyBtn) {
-            historyBtn.addEventListener('click', () => {
-                this.openHistory();
-            });
-        }
 
-        // History search
-        const historySearch = document.getElementById('historySearch');
-        if (historySearch) {
-            historySearch.addEventListener('input', (e) => {
-                this.filterHistory(e.target.value);
-            });
-        }
 
-        const clearHistory = document.getElementById('clearHistory');
-        if (clearHistory) {
-            clearHistory.addEventListener('click', () => {
-                this.clearHistory();
-            });
-        }
+
 
         // Modal backdrop clicks
         const settingsModal = document.getElementById('settingsModal');
@@ -113,14 +94,7 @@ class WhisperMaestroApp {
             });
         }
 
-        const historyModal = document.getElementById('historyModal');
-        if (historyModal) {
-            historyModal.addEventListener('click', (e) => {
-                if (e.target.id === 'historyModal') {
-                    this.hideHistory();
-                }
-            });
-        }
+
     }
 
     setupIpcListeners() {
@@ -182,10 +156,7 @@ class WhisperMaestroApp {
             this.showSettings();
         });
 
-        window.electronAPI.onShowHistory(() => {
-            console.log('📋 Renderer: Received show-history event from tray menu');
-            this.showHistory();
-        });
+
 
         // Listen for settings updates
         if (window.electronAPI.onSettingsUpdated) {
@@ -454,7 +425,7 @@ class WhisperMaestroApp {
                         this.shortcutTriggeredMode = null;
                     } else {
                         const modeSelector = document.getElementById('modeSelector');
-                        selectedMode = modeSelector ? modeSelector.value : 'transcript';
+                        selectedMode = modeSelector ? modeSelector.value : 'none';
                         console.log('🎭 Using dropdown-selected mode:', selectedMode);
                     }
                     
@@ -728,80 +699,7 @@ class WhisperMaestroApp {
         }
     }
 
-    openHistory() {
-        console.log('📋 Opening history window...');
-        if (typeof window.electronAPI !== 'undefined') {
-            window.electronAPI.openHistory();
-        }
-    }
 
-    renderHistory(history) {
-        const historyList = document.getElementById('historyList');
-        if (!historyList) return;
-        
-        historyList.innerHTML = '';
-        
-        history.forEach(item => {
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            historyItem.innerHTML = `
-                <div class="history-item-header">
-                    <span class="history-item-date">${new Date(item.timestamp).toLocaleString()}</span>
-                    <div class="history-item-actions">
-                        <button onclick="app.copyHistoryItem('${item.text}')" title="Copy" class="history-action-btn">
-                            <span class="material-icons">content_copy</span>
-                        </button>
-                        <button onclick="app.deleteHistoryItem('${item.id}')" title="Delete" class="history-action-btn">
-                            <span class="material-icons">delete_outline</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="history-item-text">${item.text}</div>
-            `;
-            historyList.appendChild(historyItem);
-        });
-    }
-
-    filterHistory(searchTerm) {
-        // Implementation for filtering history
-        console.log('Filtering history:', searchTerm);
-    }
-
-    async clearHistory() {
-        if (confirm('Are you sure you want to clear all history?')) {
-            if (typeof window.electronAPI !== 'undefined') {
-                try {
-                    // await window.electronAPI.clearHistory();
-                    this.showNotification('History cleared!');
-                } catch (error) {
-                    console.error('Failed to clear history:', error);
-                }
-            }
-        }
-    }
-
-    copyHistoryItem(text) {
-        if (typeof window.electronAPI !== 'undefined') {
-            window.electronAPI.copyToClipboard(text);
-        } else {
-            navigator.clipboard.writeText(text);
-        }
-        this.showNotification('Copied to clipboard!');
-    }
-
-    async deleteHistoryItem(id) {
-        if (typeof window.electronAPI !== 'undefined') {
-            try {
-                await window.electronAPI.deleteHistoryItem(id);
-                this.showNotification('Item deleted!');
-                // Refresh history
-                const history = await window.electronAPI.getHistory();
-                this.renderHistory(history);
-            } catch (error) {
-                console.error('Failed to delete item:', error);
-            }
-        }
-    }
 
     showNotification(message, type = 'success') {
         // Create notification with exact transcribing bar aesthetic
@@ -1117,13 +1015,13 @@ class WhisperMaestroApp {
                     // Clear existing options
                     modeSelector.innerHTML = '';
                     
-                    // Add modes to the dropdown with shortcuts
+                    // Add modes to the dropdown with emojis and shortcuts
                     Object.entries(modeSettings.modes).forEach(([modeKey, modeConfig]) => {
                         if (modeConfig.enabled) {
                             const option = document.createElement('option');
                             option.value = modeKey;
                             
-                            // Format the option text to include shortcut if available
+                            // Format the option text to include emoji and shortcut if available
                             let optionText = modeConfig.name;
                             if (modeConfig.shortcut) {
                                 const displayShortcut = this.electronToDisplayShortcut(modeConfig.shortcut);
@@ -1135,8 +1033,9 @@ class WhisperMaestroApp {
                         }
                     });
                     
-                    // Set default to transcript
-                    modeSelector.value = 'transcript';
+                    // Set default to last used mode or none
+                    const lastUsedMode = await this.getLastUsedMode();
+                    modeSelector.value = lastUsedMode;
                     
                     console.log('✅ Mode selector populated with available modes and shortcuts');
                 } else {
@@ -1145,25 +1044,25 @@ class WhisperMaestroApp {
                 
             } catch (error) {
                 console.error('❌ Failed to load available modes:', error);
-                // Fallback to default modes if API fails
                 this.populateDefaultModes();
             }
         } else {
             console.warn('⚠️ Mode settings API not available, using defaults');
-            this.populateDefaultModes();
+            await this.populateDefaultModes();
         }
     }
 
-    populateDefaultModes() {
+    async populateDefaultModes() {
         const modeSelector = document.getElementById('modeSelector');
         if (modeSelector) {
             // Default shortcuts for built-in modes (using Electron format)
             const defaultShortcuts = {
-                transcript: 'CommandOrControl+Shift+1',
-                email: 'CommandOrControl+Shift+2', 
-                slack: 'CommandOrControl+Shift+3',
-                notes: 'CommandOrControl+Shift+4',
-                tasks: 'CommandOrControl+Shift+5'
+                none: 'CommandOrControl+Shift+1',
+                enhanced: 'CommandOrControl+Shift+2',
+                email: 'CommandOrControl+Shift+3', 
+                slack: 'CommandOrControl+Shift+4',
+                whatsapp: 'CommandOrControl+Shift+5',
+                linkedin: 'CommandOrControl+Shift+6'
             };
             
             // Convert to display format
@@ -1173,13 +1072,16 @@ class WhisperMaestroApp {
             });
             
             modeSelector.innerHTML = `
-                <option value="transcript">Transcript (${displayShortcuts.transcript})</option>
-                <option value="email">Email (${displayShortcuts.email})</option>
-                <option value="slack">Slack (${displayShortcuts.slack})</option>
-                <option value="notes">Meeting Notes (${displayShortcuts.notes})</option>
-                <option value="tasks">Action Items (${displayShortcuts.tasks})</option>
+                <option value="none">📝 Raw Transcript (${displayShortcuts.none})</option>
+                <option value="enhanced">✨ Enhanced Transcript (${displayShortcuts.enhanced})</option>
+                <option value="email">📧 Email (${displayShortcuts.email})</option>
+                <option value="slack">💬 Slack (${displayShortcuts.slack})</option>
+                <option value="whatsapp">📱 WhatsApp (${displayShortcuts.whatsapp})</option>
+                <option value="linkedin">💼 LinkedIn (${displayShortcuts.linkedin})</option>
             `;
-            modeSelector.value = 'transcript';
+            // Set default to last used mode or none
+            const lastUsedMode = await this.getLastUsedMode();
+            modeSelector.value = lastUsedMode;
             console.log('✅ Default modes populated with shortcuts');
         }
     }
@@ -1225,6 +1127,18 @@ class WhisperMaestroApp {
     refreshAvailableModes() {
         console.log('🔄 Refreshing available modes...');
         this.loadAvailableModes();
+    }
+
+    async getLastUsedMode() {
+        if (typeof window.electronAPI !== 'undefined' && window.electronAPI.getLastUsedMode) {
+            try {
+                return await window.electronAPI.getLastUsedMode();
+            } catch (error) {
+                console.warn('⚠️ Could not get last used mode:', error);
+                return 'none';
+            }
+        }
+        return 'none';
     }
 }
 

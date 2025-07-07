@@ -557,86 +557,7 @@ body {
     background: #d32f2f;
 }
 
-.history-controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-}
 
-#historySearch {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    font-size: 14px;
-    background: #fafafa;
-}
-
-.history-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.history-item {
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    background: #fafafa;
-}
-
-.history-item:hover {
-    background: #f5f5f5;
-}
-
-.history-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.history-item-date {
-    font-size: 12px;
-    color: #757575;
-}
-
-.history-item-actions {
-    display: flex;
-    gap: 4px;
-}
-
-.history-item-text {
-    font-size: 14px;
-    line-height: 1.4;
-    color: #424242;
-}
-
-.history-action-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    color: #6b7280;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    min-height: 28px;
-}
-
-.history-action-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.history-action-btn .material-icons {
-    font-size: 16px;
-    line-height: 1;
-    user-select: none;
-}
 
 .circle-control-button {
     width: 40px;
@@ -1210,7 +1131,7 @@ body.recording #cancelRecordingBtn {
     cursor: pointer;
     transition: all 0.2s ease;
     outline: none;
-    min-width: 160px;
+    min-width: 180px;
     text-align: center;
     -webkit-app-region: no-drag;
 }
@@ -1362,4 +1283,217 @@ body.recording #cancelRecordingBtn {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* Quick Toggle Styles */
+.quick-toggle-section {
+    margin-bottom: 20px;
+}
+
+.quick-toggle-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quick-toggle-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.quick-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.quick-toggle-btn.active {
+    background: #007AFF;
+    border-color: #007AFF;
+    color: white;
+}
+
+/* Enhanced Mode Selector */
+.mode-selector {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #424242;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    min-width: 180px;
+    text-align: center;
+    -webkit-app-region: no-drag;
+}
+
+.mode-selector:hover {
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mode-selector:focus {
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
+}
+
+/* Personalization Styles */
+.personalization-list {
+    margin-top: 16px;
+}
+
+.personalization-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.personalization-item:hover {
+    border-color: #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.personalization-item.editing {
+    border-color: #2196f3;
+    background: #f8fbff;
+}
+
+.personalization-drag-handle {
+    color: #ccc;
+    cursor: grab;
+    font-size: 18px;
+    user-select: none;
+}
+
+.personalization-drag-handle:hover {
+    color: #999;
+}
+
+.personalization-drag-handle:active {
+    cursor: grabbing;
+}
+
+.personalization-text {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.personalization-text:hover {
+    color: #2196f3;
+}
+
+.personalization-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+}
+
+.personalization-input:focus {
+    outline: none;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.personalization-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.personalization-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.personalization-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.personalization-btn.edit-btn:hover {
+    background: #e3f2fd;
+    color: #2196f3;
+}
+
+.personalization-btn.delete-btn:hover {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.personalization-btn.save-btn {
+    color: #4caf50;
+}
+
+.personalization-btn.save-btn:hover {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.personalization-btn.cancel-btn {
+    color: #666;
+}
+
+.personalization-btn.cancel-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.personalization-btn .material-icons {
+    font-size: 16px;
+}
+
+.personalization-empty-state {
+    margin-top: 24px;
+}
+
+.personalization-add-section {
+    background: #f8fbff;
+    border: 1px solid #e3f2fd;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+/* Drag and drop styles */
+.personalization-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.personalization-item.drag-over {
+    border-color: #2196f3;
+    border-style: dashed;
+    background: #f0f8ff;
 } 
